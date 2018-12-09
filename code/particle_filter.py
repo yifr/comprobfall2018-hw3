@@ -16,10 +16,27 @@ from Map import Map_2D
 class Particle_Filter():
     x_start = 0
     y_start = 0
-    signals = []
+    scans = []
     particles = []
 
+    #Initialize filter with n uniformly distributed particles
+    def __init__(self, _map, n):
+        for i in range(n):
+            particle = (random.uniform(_map.min_x, _map.max_x), \
+                                random.uniform(_map.min_y, _map.max_y), \
+                                random.uniform(0, 2*pi))
+            self.particles.append(particle)
+'''
+class Particle:
+    x = 0
+    y = 0
+    theta = 0
 
+    def __init__(self,x,y,theta):
+        self.x = x
+        self.y = y
+        self.theta = theta
+'''
 class Message():
     heading = 0
     distance = 0
@@ -36,8 +53,7 @@ class Message():
 
 #Param: Path to trajectory file
 #       pf: particle filter object
-#       ground_truth: whether or not to extract ground truth from data
-def parse_trajectories(path_to_trajectory_file, pf, ground_truth=False):
+def parse_trajectories(path_to_trajectory_file, pf):
     f = open(path_to_trajectory_file)
     lines = f.readlines()
 
@@ -60,14 +76,6 @@ def parse_trajectories(path_to_trajectory_file, pf, ground_truth=False):
             i += 1
     
     for raw_message in raw_messages:
-        '''
-        i = 0
-        for line in raw_message:
-            print i, line
-            i += 1
-        print
-        print
-        '''
         message = Message()
         message.heading = float(raw_message[0].split(':')[2])
         message.distance = float(raw_message[1].split(':')[2])
@@ -79,11 +87,19 @@ def parse_trajectories(path_to_trajectory_file, pf, ground_truth=False):
         message.noisy_distance = float(raw_message[27].split(':')[1])
         message.scan_data = [float(elem) for elem in raw_message[29].split(':')[1][2:-2].split(',')]
 
+        pf.scans.append(message)
 
 def main():
-    f = '../turtlebot_maps/trajectories/trajectories_1.txt'
-    pf = Particle_Filter()
-    parse_trajectories(f, pf)
+    number = raw_input("Which map do you want to visualize? \nEnter 1, 2, 3, 4, 5, 6 or 7 to continue:\n\n")
+    f1 = "../turtlebot_maps/map_"+str(number)+".txt"
+    map1 = Map_2D(f1)
+    #map1.plot()
+
+    f2 = '../turtlebot_maps/trajectories/trajectories_'+str(number)+'.txt'
+    pf = Particle_Filter(map1, 1000)
+    parse_trajectories(f2, pf)
+    
+    #print pf.particles
 
 if __name__=='__main__':
     main()
