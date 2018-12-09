@@ -58,7 +58,7 @@ class Map_2D():
 
     def plot(self):
         plt.show()
-
+'''
 def main():
     number = raw_input("Which map do you want to visualize? \nEnter 1, 2, 3, 4, 5, 6 or 7 to continue:\n\n")
     
@@ -68,3 +68,4 @@ def main():
 
 if __name__=="__main__":
     main()
+'''
