@@ -90,6 +90,7 @@ class Particle_Filter():
             new_particles.append(Particle(x,y,theta))
             counter+=1
         self.particles=new_particles
+        
 class Message():
     heading = 0
     distance = 0
@@ -217,4 +218,4 @@ def test():
     print math.sin(math.pi/2)
 
 if __name__=='__main__':
-    test()
+    main()
