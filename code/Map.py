@@ -23,12 +23,12 @@ class Map_2D():
         obstacles = coords[2:]
         
         #Build walls of map:
-        min_x = make_tuple(walls[2])[0]
-        max_x = make_tuple(walls[0])[0]
-        min_y = make_tuple(walls[3])[1]
-        max_y = make_tuple(walls[1])[1]
+        self.min_x = make_tuple(walls[2])[0]
+        self.max_x = make_tuple(walls[0])[0]
+        self.min_y = make_tuple(walls[3])[1]
+        self.max_y = make_tuple(walls[1])[1]
 
-        self.ax = plt.axes(xlim=(min_x, max_x), ylim=(min_y, max_y))
+        self.ax = plt.axes(xlim=(self.min_x, self.max_x), ylim=(self.min_y, self.max_y))
         
         #Create obstacles
         for obstacle in obstacles:
