@@ -51,25 +51,36 @@ class Particle:
             angle = self.theta - scan_angle
             scan_point = (10*math.cos(angle),  10*math.sin(angle))
             line = LineString([(self.x, self.y), scan_point])
+            linestring_type = type(line)
             for o in obstacles:
-                intersection = line.intersection(o)
-                if intersection:
+                collision = line.intersection(o)
+                if collision:
                     #Compute distance
-                    print intersection
-                    print 
-                    print
-                    l = (intersection.coords[0], intersection.coords[1])
+                    if type(collision) != linestring_type:
+                        l = []
+                        for i in collision.geoms:
+                            linestring = (i.coords[0], i.coords[1])
+                            l.append(linestring)
+                    else:
+                        l = [(collision.coords[0], collision.coords[1])]
                     min_dist = self.min_distance(l)
                     self.distances.append(min_dist)
 
             scan_angle -= 1.125
         
     def min_distance(self, points):
-        #print (len(points))
-        #Compute smaller distance
-        dist1 = math.sqrt((self.x - points[0][0])**2 + (self.y - points[0][1])**2) 
-        dist2 = math.sqrt((self.x - points[1][0])**2 + (self.y - points[1][1])**2) 
-        return min(dist1, dist2)
+        #print 'POINTS:' , points
+        min_dist = 100000
+        for i in range(len(points)):
+            for j in range(len(points[i])):
+                #print points[i][j]
+                dist = math.sqrt((self.x - points[i][j][0])**2 + (self.y - points[i][j][1])**2) 
+                if dist < min_dist:
+                    #print 'Swapping distances. \tCurrent min: ', min_dist, '\tNew min: ', dist
+                    min_dist = dist
+        #print 
+        #print
+        return dist
 
 class Message():
     heading = 0
