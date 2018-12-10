@@ -7,6 +7,7 @@ import math
 import random
 from math import pi as pi
 import heapq as hq
+import scipy.stats as st
 
 from shapely.geometry import Point
 from shapely.geometry import LineString
@@ -25,6 +26,7 @@ class Particle_Filter():
     #Initialize filter with n uniformly distributed particles
     def __init__(self, _map, n):
         self.n = n
+        self.map=_map
         for i in range(n):
             particle = Particle(random.uniform(_map.min_x, _map.max_x), \
                                 random.uniform(_map.min_y, _map.max_y), \
@@ -45,7 +47,40 @@ class Particle_Filter():
         p = [particle.weight for particle in self.particles]
         print p
         print sum(p)
-
+    
+    def resample(self):
+        new_particles=[]
+        weights=[]
+        tot_weight=0
+        
+        """Normalize Weights and set up 0 to 1 range"""
+        for p in self.particles:
+            weights.append(p.weight)
+            tot_weight+=p.weight
+        counter=0
+        while counter<len(weights):
+            weights[counter]=weights[counter]/tot_weight
+            if counter>0:
+                weights[counter]=weights[counter]+weights[counter-1]
+                counter+=1
+        
+        """Resample with weight constraints"""
+        counter=0
+        while counter<self.n:
+            """Get particle index for neighborhood"""
+            mark=random.random()
+            part_index=0
+            while mark>weights[wt_index]:
+                part_index+=1
+            
+            """Get new particle pose"""
+            heading=math.pi*random.random()
+            dist=st.norm.ppf(random.random())*self.scan_noise
+            x=self.particles[part_index].x+math.cos(heading)*dist
+            y=self.particles[part_index].x+math.sin(heading)*dist
+            theta=random.random()*2*math.pi
+            new_particles.append()
+            counter+=1
 class Message():
     heading = 0
     distance = 0
@@ -169,5 +204,8 @@ def main():
     print ("Total time taken: ", end - start)
     #print pf.particles
 
+def test():
+    print math.sin(math.pi/2)
+
 if __name__=='__main__':
-    main()
+    test()
