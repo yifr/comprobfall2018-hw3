@@ -201,7 +201,7 @@ def main():
     print 
     f1 = "../turtlebot_maps/map_"+str(number)+".txt"
     map1 = Map_2D(f1)
-    #map1.plot()
+    map1.plot()
 
     f2 = '../turtlebot_maps/trajectories/trajectories_'+str(number)+'.txt'
     start = time.time()

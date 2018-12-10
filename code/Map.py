@@ -10,9 +10,7 @@ from ast import literal_eval as make_tuple
 
 class Map_2D():
     obstacles = []
-    fig = plt.figure()
-    ax = plt.axes()
-
+    obstacle_patches=[]
     #Takes path to map file as parameter
     def __init__(self, world):
         coords = []
@@ -28,8 +26,6 @@ class Map_2D():
         self.max_x = make_tuple(walls[0])[0]
         self.min_y = make_tuple(walls[3])[1]
         self.max_y = make_tuple(walls[1])[1]
-
-        self.ax = plt.axes(xlim=(self.min_x, self.max_x), ylim=(self.min_y, self.max_y))
         
         #Create obstacles
         for obstacle in obstacles:
@@ -55,24 +51,34 @@ class Map_2D():
         #Plot obstacle:
         vertices = np.array(points)
         patch = patches.Polygon(vertices)
-        self.ax.add_patch(patch)
-    
+        self.obstacle_patches.append(patch)
+        
     def collide(self,point1,point2=None):
         if point2==None:
             point=shapely.Point(point1[0],point1[1])
             for obs in self.obstacles:
-                if point.within(obs[1]) and not point.touches(obs[1]):
+                if point.within(obs) and not point.touches(obs):
                     return True
         else:
             path =shapely.LineString([point1,point2])
             if self.buff>0:
                 path=path.buffer(self.buff)
             for obs in self.obstacles:
-                if obs[1].intersects(path) and not path.touches(obs[1]):
+                if obs.intersects(path) and not path.touches(obs):
                     return True
         return False
     
     def plot(self):
+        fig, ax = plt.subplots()
+        
+        for patch in self.obstacle_patches:
+            ax.add_patch(patch)
+        
+        #Set boundaries
+        ax.set_xlim([self.min_x,self.max_x])
+        ax.set_ylim([self.min_y,self.max_y])
+#        ax = plt.axes(xlim=(self.min_x, self.max_x), ylim=(self.min_y, self.max_y))
+
         plt.show()
 '''
 def main():
