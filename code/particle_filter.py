@@ -70,7 +70,7 @@ class Particle_Filter():
             """Get particle index for neighborhood"""
             mark=random.random()
             part_index=0
-            while mark>weights[wt_index]:
+            while mark>weights[part_index]:
                 part_index+=1
             
             """Get new particle pose"""
@@ -78,9 +78,18 @@ class Particle_Filter():
             dist=st.norm.ppf(random.random())*self.scan_noise
             x=self.particles[part_index].x+math.cos(heading)*dist
             y=self.particles[part_index].x+math.sin(heading)*dist
-            theta=random.random()*2*math.pi
-            new_particles.append()
+            """sample new point if collision"""
+            while map.collide((x,y)):
+                heading=math.pi*random.random()
+                dist=st.norm.ppf(random.random())*self.scan_noise
+                x=self.particles[part_index].x+math.cos(heading)*dist
+                y=self.particles[part_index].x+math.sin(heading)*dist
+            
+            theta=random.random()*360.0
+            
+            new_particles.append(Particle(x,y,theta))
             counter+=1
+        self.particles=new_particles
 class Message():
     heading = 0
     distance = 0

@@ -4,6 +4,7 @@ import matplotlib.patches as patches
 
 from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
+import shapely
 
 from ast import literal_eval as make_tuple
 
@@ -55,7 +56,22 @@ class Map_2D():
         vertices = np.array(points)
         patch = patches.Polygon(vertices)
         self.ax.add_patch(patch)
-
+    
+    def collide(self,point1,point2=None):
+        if point2==None:
+            point=shapely.Point(point1[0],point1[1])
+            for obs in self.obstacles:
+                if point.within(obs[1]) and not point.touches(obs[1]):
+                    return True
+        else:
+            path =shapely.LineString([point1,point2])
+            if self.buff>0:
+                path=path.buffer(self.buff)
+            for obs in self.obstacles:
+                if obs[1].intersects(path) and not path.touches(obs[1]):
+                    return True
+        return False
+    
     def plot(self):
         plt.show()
 '''
