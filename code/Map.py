@@ -83,7 +83,7 @@ class Map_2D():
             
         #Add particles
         for pt in self.particles:
-            plt.plot(pt[0],pt[1],marker='o', markersize=5, color="black")
+            plt.plot(pt[0],pt[1],marker='o', markersize=5, color=(0,0,1))
         
 #        ax = plt.axes(xlim=(self.min_x, self.max_x), ylim=(self.min_y, self.max_y))
 
