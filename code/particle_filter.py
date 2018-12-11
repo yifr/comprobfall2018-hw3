@@ -92,8 +92,9 @@ class Particle_Filter():
         self.particles=new_particles
     
     def particles_to_map(self):
-        for part in particles:
-            
+        self.map.particles=[]
+        for part in self.particles:
+            self.map.particles.append((part.x,part.y))
     
 class Message():
     heading = 0
@@ -205,11 +206,14 @@ def main():
     print 
     f1 = "../turtlebot_maps/map_"+str(number)+".txt"
     map1 = Map_2D(f1)
-    map1.plot()
 
     f2 = '../turtlebot_maps/trajectories/trajectories_'+str(number)+'.txt'
     start = time.time()
     pf = Particle_Filter(map1, 100)
+    pf.particles_to_map()
+    
+    map1.plot()
+    
     parse_trajectories(f2, pf)
     for particle in pf.particles:
         particle.scan(map1)

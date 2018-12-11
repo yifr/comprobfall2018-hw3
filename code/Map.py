@@ -11,7 +11,7 @@ from ast import literal_eval as make_tuple
 class Map_2D():
     obstacles = []
     obstacle_patches=[]
-    
+    particles=[]
     
     #Takes path to map file as parameter
     def __init__(self, world):
@@ -73,12 +73,18 @@ class Map_2D():
     def plot(self):
         fig, ax = plt.subplots()
         
-        for patch in self.obstacle_patches:
-            ax.add_patch(patch)
-        
         #Set boundaries
         ax.set_xlim([self.min_x,self.max_x])
         ax.set_ylim([self.min_y,self.max_y])
+        
+        #Add obstacles
+        for patch in self.obstacle_patches:
+            ax.add_patch(patch)
+            
+        #Add particles
+        for pt in self.particles:
+            plt.plot(pt[0],pt[1],marker='o', markersize=5, color="black")
+        
 #        ax = plt.axes(xlim=(self.min_x, self.max_x), ylim=(self.min_y, self.max_y))
 
         plt.show()
