@@ -96,6 +96,47 @@ class Particle_Filter():
         for part in self.particles:
             self.map.particles.append((part.x,part.y))
     
+    def propogate(self):
+        #code for propogation
+
+    def intSample(self):
+        new_particles=[]
+
+        """Get particle pose """
+        heading=math.pi*random.random()
+        dist=st.norm.ppf(random.random())*self.scan_noise
+        x=self.x.start+math.cos(heading)*dist
+        y=self.y.start+math.sin(heading)*dist
+        """sample new point if collision"""
+        while map.collide((x,y)):
+            heading=math.pi*random.random()
+            dist=st.norm.ppf(random.random())*self.scan_noise
+            x=self.x.start+math.cos(heading)*dist
+            y=self.y.start+math.sin(heading)*dist
+            
+        theta=random.random()*360.0
+            
+        new_particles.append(Particle(x,y,theta))
+        self.particles=new_particles
+    
+
+    def runCode(self):
+        #main()
+        intSample()
+        
+        start = time.time()
+        pf = Particle_Filter(map1, 100)
+        parse_trajectories(f2, pf)
+        for particle in pf.particles:
+            particle.scan(map1)
+        pf.compute_weights(pf.messages[0])
+        end = time.time()
+        print ("Total time taken: ", end - start)
+
+        resample()
+    
+
+
 class Message():
     heading = 0
     distance = 0
@@ -208,6 +249,15 @@ def main():
     map1 = Map_2D(f1)
 
     f2 = '../turtlebot_maps/trajectories/trajectories_'+str(number)+'.txt'
+    runCode()
+    """
+    while there are new messages do:
+        propogate()
+        compute_weights()
+        resample()
+    """
+
+    """
     start = time.time()
     pf = Particle_Filter(map1, 100)
     pf.particles_to_map()
@@ -220,6 +270,7 @@ def main():
     pf.compute_weights(pf.messages[0])
     end = time.time()
     print ("Total time taken: ", end - start)
+    """
     #print pf.particles
 
 def test():
