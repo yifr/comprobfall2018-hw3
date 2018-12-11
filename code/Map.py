@@ -5,7 +5,7 @@ import matplotlib.patches as patches
 from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
 from matplotlib import collections as mc
-import shapely
+import shapely.geometry as shp
 
 from ast import literal_eval as make_tuple
 
@@ -60,12 +60,12 @@ class Map_2D():
         
     def collide(self,point1,point2=None):
         if point2==None:
-            point=shapely.Point(point1[0],point1[1])
+            point=shp.Point(point1[0],point1[1])
             for obs in self.obstacles:
                 if point.within(obs) and not point.touches(obs):
                     return True
         else:
-            path =shapely.LineString([point1,point2])
+            path =shp.LineString([point1,point2])
             if self.buff>0:
                 path=path.buffer(self.buff)
             for obs in self.obstacles:
@@ -75,6 +75,12 @@ class Map_2D():
     
     def plot(self):
         fig, ax = plt.subplots()
+        
+        #Set plot size
+        fig_size = plt.rcParams["figure.figsize"]
+        fig_size[0] = 12
+        fig_size[1] = 9
+        plt.rcParams["figure.figsize"] = fig_size
         
         #Set boundaries
         ax.set_xlim([self.min_x,self.max_x])
@@ -89,7 +95,8 @@ class Map_2D():
             plt.plot(pt[0],pt[1],marker='o', markersize=5, color=(0,0,1))
         
         #add robot path
-        lc = mc.LineCollection(self.path,linewidths = 2.5)
+        plt.plot(self.path[0][0][0],self.path[0][0][1],marker='o', markersize=5,color="black")
+        lc = mc.LineCollection(self.path,linewidths = 2.5,color="black")
         ax.add_collection(lc)
         
 #        ax = plt.axes(xlim=(self.min_x, self.max_x), ylim=(self.min_y, self.max_y))

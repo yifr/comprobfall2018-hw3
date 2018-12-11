@@ -20,25 +20,25 @@ class Particle_Filter():
     x_start = 0
     y_start = 0
     messages = []   
-    particles = []
     scan_noise = 0.1
     
     #Initialize filter with n uniformly distributed particles
     def __init__(self, _map, n):
         self.n = n
         self.map=_map
-        for i in range(n):
-            particle = Particle(random.uniform(_map.min_x, _map.max_x), \
-                                random.uniform(_map.min_y, _map.max_y), \
-                                random.uniform(0, 2*pi))
-            self.particles.append(particle)
+        self.particles = []
+#        for i in range(n):
+#            particle = Particle(random.uniform(_map.min_x, _map.max_x), \
+#                                random.uniform(_map.min_y, _map.max_y), \
+#                                random.uniform(0, 2*pi))
+#            self.particles.append(particle)
 
     def compute_weights(self, message):
         mean_robot_dist = sum([distance for distance in message.scan_data if not math.isnan(distance)]) / len(message.scan_data)
         std = self.scan_noise
         for particle in self.particles:
             mean_particle_dist = sum([distance for distance in particle.distances if not math.isnan(distance)]) 
-            mean_particle_dist /= len(particle.distances)
+            mean_particle_dist = len(particle.distances)
             d = mean_particle_dist - mean_robot_dist
             weight = 1/(math.sqrt(2*pi)*std)*math.e**-(d**2/(2*std**2))
             particle.weight = weight / self.n
@@ -79,7 +79,7 @@ class Particle_Filter():
             x=self.particles[part_index].x+math.cos(heading)*dist
             y=self.particles[part_index].x+math.sin(heading)*dist
             """sample new point if collision"""
-            while map.collide((x,y)):
+            while self.map.collide((x,y)):
                 heading=math.pi*random.random()
                 dist=st.norm.ppf(random.random())*self.scan_noise
                 x=self.particles[part_index].x+math.cos(heading)*dist
@@ -105,14 +105,15 @@ class Particle_Filter():
         """Get particle pose """
         heading=math.pi*random.random()
         dist=st.norm.ppf(random.random())*self.scan_noise
-        x=self.x.start+math.cos(heading)*dist
-        y=self.y.start+math.sin(heading)*dist
+        x=self.x_start+math.cos(heading)*dist
+        y=self.y_start+math.sin(heading)*dist
         """sample new point if collision"""
-        while map.collide((x,y)):
+        while self.map.collide((x,y)):
             heading=math.pi*random.random()
             dist=st.norm.ppf(random.random())*self.scan_noise
-            x=self.x.start+math.cos(heading)*dist
-            y=self.y.start+math.sin(heading)*dist
+            x=self.x_start+math.cos(heading)*dist
+            y=self.y_start+math.sin(heading)*dist
+            print x," ",y
             
         theta=random.random()*360.0
             
@@ -268,6 +269,9 @@ def main():
     for particle in pf.particles:
         particle.scan(map1)
     
+    pf.intSample()
+    
+    """Print robot Path"""
     prev=(pf.x_start,pf.y_start)
     for message in pf.messages:
         new_x=prev[0]+math.cos(message.heading)*message.distance
