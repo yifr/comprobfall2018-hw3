@@ -98,7 +98,7 @@ class Particle_Filter():
     
     def propogate(self):
         #code for propogation
-
+        print "har"
     def intSample(self):
         new_particles=[]
 
@@ -122,7 +122,7 @@ class Particle_Filter():
 
     def runCode(self):
         #main()
-        intSample()
+        self.intSample()
         
         start = time.time()
         pf = Particle_Filter(map1, 100)
@@ -133,7 +133,7 @@ class Particle_Filter():
         end = time.time()
         print ("Total time taken: ", end - start)
 
-        resample()
+        self.resample()
     
 
 
@@ -211,7 +211,8 @@ def parse_trajectories(path_to_trajectory_file, pf):
 
     pf.x_start = int(lines[1].split(':')[1])
     pf.y_start = int(lines[2].split(':')[1])
-    raw_messages = []
+
+    raw_messages=[]
 
     i = 4
     while i < len(lines):
@@ -249,28 +250,38 @@ def main():
     map1 = Map_2D(f1)
 
     f2 = '../turtlebot_maps/trajectories/trajectories_'+str(number)+'.txt'
-    runCode()
-    """
-    while there are new messages do:
-        propogate()
-        compute_weights()
-        resample()
-    """
-
-    """
+#    runCode()
+    
+    
+#    while there are new messages do:
+#        propogate()
+#        compute_weights()
+#        resample()
+    
+    
+    
     start = time.time()
     pf = Particle_Filter(map1, 100)
     pf.particles_to_map()
     
-    map1.plot()
-    
     parse_trajectories(f2, pf)
     for particle in pf.particles:
         particle.scan(map1)
+    
+    prev=(pf.x_start,pf.y_start)
+    for message in pf.messages:
+        new_x=prev[0]+math.cos(message.heading)*message.distance
+        new_y=prev[1]+math.sin(message.heading)*message.distance
+        current=(new_x,new_y)
+        map1.path.append([prev,current])
+        prev=current
+        
+    map1.plot()
+    
     pf.compute_weights(pf.messages[0])
     end = time.time()
     print ("Total time taken: ", end - start)
-    """
+    
     #print pf.particles
 
 def test():

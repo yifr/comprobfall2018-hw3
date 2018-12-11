@@ -4,6 +4,7 @@ import matplotlib.patches as patches
 
 from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
+from matplotlib import collections as mc
 import shapely
 
 from ast import literal_eval as make_tuple
@@ -11,10 +12,12 @@ from ast import literal_eval as make_tuple
 class Map_2D():
     obstacles = []
     obstacle_patches=[]
-    particles=[]
     
     #Takes path to map file as parameter
     def __init__(self, world):
+        self.particles=[]
+        self.path=[]
+        
         coords = []
         f = open(world)
         for line in f:
@@ -84,6 +87,10 @@ class Map_2D():
         #Add particles
         for pt in self.particles:
             plt.plot(pt[0],pt[1],marker='o', markersize=5, color=(0,0,1))
+        
+        #add robot path
+        lc = mc.LineCollection(self.path,linewidths = 2.5)
+        ax.add_collection(lc)
         
 #        ax = plt.axes(xlim=(self.min_x, self.max_x), ylim=(self.min_y, self.max_y))
 
