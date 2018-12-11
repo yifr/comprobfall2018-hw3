@@ -1,3 +1,4 @@
+import os
 import time
 import numpy as np 
 import matplotlib.pyplot as plt
@@ -13,6 +14,7 @@ from shapely.geometry import LineString
 from shapely.geometry.polygon import Polygon
 from shapely.geometry import mapping
 
+from collections import Counter
 from Map import Map_2D
 
 class Particle_Filter():
@@ -31,33 +33,29 @@ class Particle_Filter():
                                 random.uniform(0, 2*pi))
             self.particles.append(particle)
 
+    def get_particle_scans(self, _map):
+        for particle in self.particles:
+            particle.scan(_map)
+
     def compute_weights(self, message):
+        print len(message.scan_data)
         mean_robot_dist = sum([distance for distance in message.scan_data if not math.isnan(distance)]) / len(message.scan_data)
         std = self.scan_noise
         for particle in self.particles:
-            mean_particle_dist = sum([distance for distance in particle.distances if not math.isnan(distance)]) 
+            mean_particle_dist = sum([distance for distance in particle.distances if not math.isnan(distance)])
+            print len(particle.distances) 
             mean_particle_dist /= len(particle.distances)
             d = mean_particle_dist - mean_robot_dist
             weight = 1/(math.sqrt(2*pi)*std)*math.e**-(d**2/(2*std**2))
             particle.weight = weight / self.n
+        
+         #Normalize weights:
+        weights = [particle.weight for particle in self.particles]
+        total_weight = sum(weights)
+        for particle in self.particles:
+            particle.weight /= total_weight
             
-        print "Particles sum to: "
-        p = [particle.weight for particle in self.particles]
-        print p
-        print sum(p)
 
-class Message():
-    heading = 0
-    distance = 0
-    position = (0,0,0)
-    orientation = (0,0,0,0)
-    linear_twist = (0,0,0)
-    angular_twist = (0,0,0)
-
-    noisy_heading = 0
-    noisy_distance = 0
-
-    scan_data = []
 
 class Particle:
     x = 0
@@ -80,26 +78,37 @@ class Particle:
             angle = self.theta - scan_angle
             scan_point = (10*math.cos(angle),  10*math.sin(angle))
             line = LineString([(self.x, self.y), scan_point])
-            linestring_type = type(line)    #used to check if intersection is shapely LineString object or MultiLineString object
+            closest_collision_distance = 10000
+
+            #Find closest obstacle for collision:
             for o in obstacles:
                 collision = line.intersection(o)
                 if collision:
                     #Compute distance
-                    if type(collision) != linestring_type:  #MultiLineStringObject (we may pass through two obstacles)
-                        l = []
-                        for i in collision.geoms:
-                            linestring = (i.coords[0], i.coords[1])
-                            l.append(linestring)
+                    if type(collision) != type(line):  #MultiLineStringObject (we may have passed through two obstacles)
+                        line_endpoints = []
+                        for linestring in collision.geoms:
+                            endpoints = (linestring.coords[0], linestring.coords[1])
+                            line_endpoints.append(endpoints)
                     else:
-                        l = [(collision.coords[0], collision.coords[1])]
-                    distance = self.nearest_collision_point_on_line(l)
-                    hq.heappush(self.distances, distance)
+                        line_endpoints = [(collision.coords[0], collision.coords[1])]
+                    
+                    #Compute distance to closest endpoint (returns NaN if out of scanner range)
+                    distance = self.compute_distance(line_endpoints)
+                    if distance == float('NaN'):
+                        distance = 10000 
+                    nearest_object_collision = min(distance, closest_collision_distance)
                 else:
-                    distance = float('NaN')
-                    hq.heappush(self.distances, distance)
+                    nearest_object_collision = 10000
+            
+            print nearest_object_collision, nearest_object_collision == 1000
+            if nearest_object_collision == 10000:
+                nearest_object_collision = float('NaN')
+            print "Computed nearest collision distance of: ", nearest_object_collision
+            hq.heappush(self.distances, nearest_object_collision)
             scan_angle -= 1.125
-        
-    def nearest_collision_point_on_line(self, points):
+
+    def compute_distance(self, points):
         #print 'POINTS:' , points
         min_dist = 100000
         for i in range(len(points)):
@@ -109,7 +118,62 @@ class Particle:
                 if dist < min_dist:
                     #print 'Swapping distances. \tCurrent min: ', min_dist, '\tNew min: ', dist
                     min_dist = dist
-        return dist
+        return dist if (dist >= 0.45 and dist <= 10.0) else float('NaN')
+
+
+class Message():
+    heading = 0
+    distance = 0
+    position = (0,0,0)
+    orientation = (0,0,0,0)
+    linear_twist = (0,0,0)
+    angular_twist = (0,0,0)
+
+    noisy_heading = 0
+    noisy_distance = 0
+
+    scan_data = []
+    
+    def __init__(self):
+        self.heading = 0
+        self.distance = 0
+        self.position = (0,0,0)
+        self.orientation = (0,0,0,0)
+        self.linear_twist = (0,0,0)
+        self.angular_twist = (0,0,0)
+
+        self.noisy_heading = 0
+        self.noisy_distance = 0
+
+        self.scan_data = []
+
+    def display(self):
+        print "Heading:"
+        print "\t" + str(self.heading)
+        print "Distance:"
+        print "\t" + str(self.distance)
+        print "Position:"
+        print "\t" + str(self.position)
+        print "Orientation:"
+        print "\t" + str(self.orientation)
+        print "Linear Twist:"
+        print "\t" + str(self.linear_twist)
+        print "Angular Twist:"
+        print "\t" + str(self.angular_twist)
+        print "Noisy Heading:"
+        print "\t" + str(self.noisy_heading)
+        print "Noisy Distance:"
+        print "\t" + str(self.noisy_distance)
+        print "Scan Data (" + str(len(self.scan_data)) + " observations):"
+        i = 0
+        for scan in self.scan_data:
+            print str(scan) + ",",
+            i += 1
+            if i == 6:
+                print "\n"
+                i = 0
+        print "-----------------------------------------------------"
+        print
 
 
 #Param: Path to trajectory file
@@ -124,11 +188,11 @@ def parse_trajectories(path_to_trajectory_file, pf):
 
     i = 4
     while i < len(lines):
+        #Separate individual messages in trajectory file
         current_reading = []
         if 'Heading:' in lines[i]:
             current_reading.append(lines[i])
             i += 1
-        
             while i < len(lines) and 'Heading:' not in lines[i]:
                 current_reading.append(lines[i])
                 i += 1
@@ -136,6 +200,7 @@ def parse_trajectories(path_to_trajectory_file, pf):
         else:
             i += 1
     
+    #Parse each message for individual content
     for raw_message in raw_messages:
         message = Message()
         message.heading = float(raw_message[0].split(':')[2])
@@ -162,8 +227,8 @@ def main():
     start = time.time()
     pf = Particle_Filter(map1, 100)
     parse_trajectories(f2, pf)
-    for particle in pf.particles:
-        particle.scan(map1)
+    pf.get_particle_scans(map1)
+        #particle.scan(map1)
     pf.compute_weights(pf.messages[0])
     end = time.time()
     print ("Total time taken: ", end - start)
