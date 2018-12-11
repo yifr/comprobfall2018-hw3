@@ -85,12 +85,16 @@ class Particle_Filter():
                 x=self.particles[part_index].x+math.cos(heading)*dist
                 y=self.particles[part_index].x+math.sin(heading)*dist
             
-            theta=random.random()*360.0
+            theta=random.random()*2*math.pi
             
             new_particles.append(Particle(x,y,theta))
             counter+=1
         self.particles=new_particles
-        
+    
+    def particles_to_map(self):
+        for part in particles:
+            
+    
 class Message():
     heading = 0
     distance = 0

@@ -11,6 +11,8 @@ from ast import literal_eval as make_tuple
 class Map_2D():
     obstacles = []
     obstacle_patches=[]
+    
+    
     #Takes path to map file as parameter
     def __init__(self, world):
         coords = []
