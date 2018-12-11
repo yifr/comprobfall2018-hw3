@@ -15,7 +15,7 @@ class Map_2D():
     
     #Takes path to map file as parameter
     def __init__(self, world):
-        self.particles=[]
+        self.particles_list=[]
         self.path=[]
         
         coords = []
@@ -90,10 +90,14 @@ class Map_2D():
         for patch in self.obstacle_patches:
             ax.add_patch(patch)
             
-        #Add particles
-        for pt in self.particles:
-            plt.plot(pt[0],pt[1],marker='o', markersize=5, color=(0,0,1))
-        
+        #Add particles from beginning to end
+        gradient=1.0/len(self.particles_list)
+        counter=0.0
+        for part_list in self.particles_list:
+            print counter
+            for pt in part_list:
+                plt.plot(pt[0],pt[1],marker='o', markersize=1, color=(0,counter,1))
+            counter= counter+gradient
         #add robot path
         plt.plot(self.path[0][0][0],self.path[0][0][1],marker='o', markersize=5,color="black")
         lc = mc.LineCollection(self.path,linewidths = 2.5,color="black")

@@ -27,26 +27,21 @@ class Particle_Filter():
         self.n = n
         self.map=_map
         self.particles = []
-#        for i in range(n):
-#            particle = Particle(random.uniform(_map.min_x, _map.max_x), \
-#                                random.uniform(_map.min_y, _map.max_y), \
-#                                random.uniform(0, 2*pi))
-#            self.particles.append(particle)
 
     def compute_weights(self, message):
         mean_robot_dist = sum([distance for distance in message.scan_data if not math.isnan(distance)]) / len(message.scan_data)
         std = self.scan_noise
         for particle in self.particles:
             mean_particle_dist = sum([distance for distance in particle.distances if not math.isnan(distance)]) 
-            mean_particle_dist = len(particle.distances)
+            mean_particle_dist /= len(particle.distances)
             d = mean_particle_dist - mean_robot_dist
             weight = 1/(math.sqrt(2*pi)*std)*math.e**-(d**2/(2*std**2))
             particle.weight = weight / self.n
             
-        print "Particles sum to: "
-        p = [particle.weight for particle in self.particles]
-        print p
-        print sum(p)
+#        print "Particles sum to: "
+#        p = [particle.weight for particle in self.particles]
+#        print p
+#        print sum(p)
     
     def resample(self):
         new_particles=[]
@@ -62,7 +57,7 @@ class Particle_Filter():
             weights[counter]=weights[counter]/tot_weight
             if counter>0:
                 weights[counter]=weights[counter]+weights[counter-1]
-                counter+=1
+            counter+=1
         
         """Resample with weight constraints"""
         counter=0
@@ -77,63 +72,96 @@ class Particle_Filter():
             heading=math.pi*random.random()
             dist=st.norm.ppf(random.random())*self.scan_noise
             x=self.particles[part_index].x+math.cos(heading)*dist
-            y=self.particles[part_index].x+math.sin(heading)*dist
+            y=self.particles[part_index].y+math.sin(heading)*dist
             """sample new point if collision"""
             while self.map.collide((x,y)):
                 heading=math.pi*random.random()
                 dist=st.norm.ppf(random.random())*self.scan_noise
                 x=self.particles[part_index].x+math.cos(heading)*dist
-                y=self.particles[part_index].x+math.sin(heading)*dist
+                y=self.particles[part_index].y+math.sin(heading)*dist
             
             theta=random.random()*2*math.pi
             
-            new_particles.append(Particle(x,y,theta))
+            """Scan and add particle"""
+            particle=Particle(x,y,theta)
+            particle.scan(self.map)
+            new_particles.append(particle)
             counter+=1
+            
         self.particles=new_particles
     
     def particles_to_map(self):
-        self.map.particles=[]
+        particles_xy=[]
         for part in self.particles:
-            self.map.particles.append((part.x,part.y))
+            particles_xy.append((part.x,part.y))
+        self.map.particles_list.append(particles_xy)
     
-    def propogate(self):
+    def propogate(self,message):
         #code for propogation
-        print "har"
-    def intSample(self):
+        for pt in self.particles:
+            heading=st.norm.ppf(random.random())*self.scan_noise+message.noisy_heading
+            dist=st.norm.ppf(random.random())*self.scan_noise+message.noisy_distance
+            x=pt.x+math.cos(heading)*dist
+            y=pt.y+math.sin(heading)*dist
+            while self.map.collide((x,y)):
+                heading=st.norm.ppf(random.random())*self.scan_noise+message.noisy_heading
+                dist=st.norm.ppf(random.random())*self.scan_noise+message.noisy_distance
+                x=pt.x+math.cos(heading)*dist
+                y=pt.y+math.sin(heading)*dist
+            pt.x=x
+            pt.y=y
+            pt.theta=heading
+            pt.scan(self.map)
+    def intSample(self,known_start):
         new_particles=[]
-
-        """Get particle pose """
-        heading=math.pi*random.random()
-        dist=st.norm.ppf(random.random())*self.scan_noise
-        x=self.x_start+math.cos(heading)*dist
-        y=self.y_start+math.sin(heading)*dist
-        """sample new point if collision"""
-        while self.map.collide((x,y)):
-            heading=math.pi*random.random()
-            dist=st.norm.ppf(random.random())*self.scan_noise
-            x=self.x_start+math.cos(heading)*dist
-            y=self.y_start+math.sin(heading)*dist
-            print x," ",y
-            
-        theta=random.random()*360.0
-            
-        new_particles.append(Particle(x,y,theta))
-        self.particles=new_particles
-    
-
-    def runCode(self):
-        #main()
-        self.intSample()
         
-        start = time.time()
-        pf = Particle_Filter(map1, 100)
-        parse_trajectories(f2, pf)
-        for particle in pf.particles:
-            particle.scan(map1)
-        pf.compute_weights(pf.messages[0])
-        end = time.time()
-        print ("Total time taken: ", end - start)
+        if known_start:
+            for i in range(self.n):
+                """Get particle pose """
+                heading=math.pi*random.random()
+                dist=st.norm.ppf(random.random())*self.scan_noise
+                x=self.x_start+math.cos(heading)*dist
+                y=self.y_start+math.sin(heading)*dist
+                """sample new point if collision"""
+                while self.map.collide((x,y)):
+                    heading=math.pi*random.random()
+                    dist=st.norm.ppf(random.random())*self.scan_noise
+                    x=self.x_start+math.cos(heading)*dist
+                    y=self.y_start+math.sin(heading)*dist
+                    print x," ",y
+                
+                theta=random.random()*360.0
+                
+                """Scan and add new particle"""
+                particle=Particle(x,y,theta)
+                particle.scan(self.map)
+                new_particles.append(particle)
+        else:
+            for i in range(self.n):
+                particle = Particle(random.uniform(self.map.min_x, self.map.max_x), \
+                                random.uniform(self.map.min_y, self.map.max_y), \
+                                random.uniform(0, 2*pi))
+                """Scan and add new particle"""
+                particle.scan(self.map)
+                new_particles.append(particle)
+        self.particles=new_particles
 
+    def iterate(self,message):
+        #main()
+#        self.intSample()
+        
+#        pf = Particle_Filter(map1, 100)
+#        parse_trajectories(f2, pf)
+#        for particle in pf.particles:
+#            particle.scan(map1)
+#        pf.compute_weights(pf.messages[0])
+#        end = time.time()
+#        print ("Total time taken: ", end - start)
+        
+        self.propogate(message)
+        
+        self.compute_weights(message)
+        
         self.resample()
     
 
@@ -262,14 +290,25 @@ def main():
     
     
     start = time.time()
-    pf = Particle_Filter(map1, 100)
+    
+    """Initialize particle filter"""
+    pf = Particle_Filter(map1, 25)
+    
+    """Retrieve Data"""
+    parse_trajectories(f2, pf)
+    
+    """Initialize First Sample"""
+    pf.intSample(True)
+    
     pf.particles_to_map()
     
-    parse_trajectories(f2, pf)
-    for particle in pf.particles:
-        particle.scan(map1)
+#    for i in range(1,10):
+#        pf.iterate(pf.messages[i])
+#        pf.particles_to_map()
     
-    pf.intSample()
+    for message in pf.messages:
+        pf.iterate(message)
+        pf.particles_to_map()
     
     """Print robot Path"""
     prev=(pf.x_start,pf.y_start)
