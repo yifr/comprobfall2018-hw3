@@ -42,7 +42,6 @@ class Particle_Filter():
         std = self.scan_noise
         for particle in self.particles:
             mean_particle_dist = sum([distance for distance in particle.distances if not math.isnan(distance)])
-            print len(particle.distances) 
             mean_particle_dist /= len(particle.distances)
             d = mean_particle_dist - mean_robot_dist
             weight = 1/(math.sqrt(2*pi)*std)*math.e**-(d**2/(2*std**2))
@@ -200,6 +199,7 @@ class Message():
         self.scan_data = []
 
     def display(self):
+        print "================================================================================================"
         print "Heading:"
         print "\t" + str(self.heading)
         print "Distance:"
@@ -224,7 +224,7 @@ class Message():
             if i == 6:
                 print "\n"
                 i = 0
-        print "-----------------------------------------------------"
+        print "================================================================================================"
         print
 
 
@@ -279,12 +279,20 @@ def main():
     start = time.time()
     pf = Particle_Filter(map1, 100)
     parse_trajectories(f2, pf)
-    pf.get_particle_scans(map1)
-        #particle.scan(map1)
-    pf.compute_weights(pf.messages[0])
+    i = 0
+    for message in pf.messages:
+        print "Reading following message:\n"
+        message.display()
+        print "Scanning map and weighting particles..."
+        pf.get_particle_scans(map1)
+        pf.compute_weights(message)
+        i += 1
+        print "Done."
+        print
+        print
     end = time.time()
-    print ("Total time taken: ", end - start)
-    #print pf.particles
+    print "Read: " + str(i) + " messages. Total time taken: ", end - start
+    end = time.time()
 
 if __name__=='__main__':
     main()
