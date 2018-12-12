@@ -277,17 +277,19 @@ def main():
 
     f2 = '../turtlebot_maps/trajectories/trajectories_'+str(number)+'.txt'
     start = time.time()
-    pf = Particle_Filter(map1, 100)
+    pf = Particle_Filter(map1, 500)
     parse_trajectories(f2, pf)
     i = 0
     for message in pf.messages:
         print "Reading following message:\n"
         message.display()
         print "Scanning map and weighting particles..."
+        scan_start = time.time()
         pf.get_particle_scans(map1)
         pf.compute_weights(message)
+        scan_stop = time.time()
         i += 1
-        print "Done."
+        print "Done. Total time elapsed to scan and weight particles: " + str(scan_stop - scan_start)
         print
         print
     end = time.time()
