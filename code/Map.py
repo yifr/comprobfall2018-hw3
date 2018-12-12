@@ -5,16 +5,20 @@ import matplotlib.patches as patches
 
 from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
+from matplotlib import collections as mc
+import shapely.geometry as shp
 
 from ast import literal_eval as make_tuple
 
 class Map_2D():
     obstacles = []
-    fig = plt.figure()
-    ax = plt.axes()
-
+    obstacle_patches=[]
+    
     #Takes path to map file as parameter
     def __init__(self, world):
+        self.particles_list=[]
+        self.path=[]
+        
         coords = []
         f = open(world)
         for line in f:
@@ -28,8 +32,6 @@ class Map_2D():
         self.max_x = make_tuple(walls[0])[0]
         self.min_y = make_tuple(walls[3])[1]
         self.max_y = make_tuple(walls[1])[1]
-
-        self.ax = plt.axes(xlim=(self.min_x, self.max_x), ylim=(self.min_y, self.max_y))
         
         #Create obstacles
         for obstacle in obstacles:
@@ -55,9 +57,55 @@ class Map_2D():
         #Plot obstacle:
         vertices = np.array(points)
         patch = patches.Polygon(vertices)
-        self.ax.add_patch(patch)
-
+        self.obstacle_patches.append(patch)
+        
+    def collide(self,point1,point2=None):
+        if point2==None:
+            point=shp.Point(point1[0],point1[1])
+            for obs in self.obstacles:
+                if point.within(obs) and not point.touches(obs):
+                    return True
+        else:
+            path =shp.LineString([point1,point2])
+            if self.buff>0:
+                path=path.buffer(self.buff)
+            for obs in self.obstacles:
+                if obs.intersects(path) and not path.touches(obs):
+                    return True
+        return False
+    
     def plot(self):
+        fig, ax = plt.subplots()
+        
+        #Set plot size
+        fig_size = plt.rcParams["figure.figsize"]
+        fig_size[0] = 12
+        fig_size[1] = 9
+        plt.rcParams["figure.figsize"] = fig_size
+        
+        #Set boundaries
+        ax.set_xlim([self.min_x,self.max_x])
+        ax.set_ylim([self.min_y,self.max_y])
+        
+        #Add obstacles
+        for patch in self.obstacle_patches:
+            ax.add_patch(patch)
+            
+        #Add particles from beginning to end
+        gradient=1.0/len(self.particles_list)
+        counter=0.0
+        for part_list in self.particles_list:
+            print counter
+            for pt in part_list:
+                plt.plot(pt[0],pt[1],marker='o', markersize=1, color=(0,counter,1))
+            counter= counter+gradient
+        #add robot path
+        plt.plot(self.path[0][0][0],self.path[0][0][1],marker='o', markersize=5,color="black")
+        lc = mc.LineCollection(self.path,linewidths = 2.5,color="black")
+        ax.add_collection(lc)
+        
+#        ax = plt.axes(xlim=(self.min_x, self.max_x), ylim=(self.min_y, self.max_y))
+
         plt.show()
 '''
 def main():
