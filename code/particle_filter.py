@@ -34,6 +34,32 @@ class Particle_Filter():
         for particle in self.particles:
             particle.scan(_map)
     
+    def compute_weights2(self,message):
+        std = self.scan_noise
+        for particle in self.particles:
+            distance_probs = []
+            count=0
+            for i in range(54):
+                if not math.isnan(message.scan_data[i]):
+                    if math.isnan(particle.distances[i]):
+                        d=11- message.scan_data[i]
+#                    print message.scan_data[i], ", ",particle.distances[i]
+                    else:
+                        d=particle.distances[i] - message.scan_data[i]
+                    weight = 1/(math.sqrt(2*pi)*std)*math.e**(-d**2/(2*std**2))
+#                    print weight
+                    distance_probs.append(weight)
+                    count += 1
+            particle.weight = sum(distance_probs) / count
+        
+        #Normalize weights:
+        weights = [particle.weight for particle in self.particles]
+        print 'Weights:'
+#        print weights
+        total_weight = sum(weights)
+        for particle in self.particles:
+            particle.weight /= total_weight
+            
     def compute_weights(self, message):
         mean_robot_dist = sum([distance for distance in message.scan_data if not math.isnan(distance)]) / len(message.scan_data)
         std = self.scan_noise
@@ -62,7 +88,7 @@ class Particle_Filter():
         #Normalize weights:
         weights = [particle.weight for particle in self.particles]
         print 'Weights:'
-        print weights
+#        print weights
         total_weight = sum(weights)
         for particle in self.particles:
             particle.weight /= total_weight
@@ -174,7 +200,7 @@ class Particle_Filter():
                     y=self.y_start+math.sin(heading)*dist
                     print x," ",y
                 
-                theta=random.random()*360.0
+                theta=random.random()*2*math.pi
                 
                 """Scan and add new particle"""
                 particle=Particle(x,y,theta)
@@ -208,7 +234,7 @@ class Particle_Filter():
         
         c1_time = time.time()
         print "\t Completed propogating (" + str(c1_time-start_time) + ") total seconds taken."
-        self.compute_weights(message)
+        self.compute_weights2(message)
         
         for particle in self.particles:
 #            if particle.weight>0.021:
@@ -457,13 +483,13 @@ def main():
     pf.particles_to_map()
     
 #    print len(pf.messages)
-    for i in range(0,5):
-        pf.iterate(pf.messages[i])
-        pf.particles_to_map()
-    
-#    for message in pf.messages:
-#        pf.iterate(message)
+#    for i in range(0,3):
+#        pf.iterate(pf.messages[i])
 #        pf.particles_to_map()
+    
+    for message in pf.messages:
+        pf.iterate(message)
+        pf.particles_to_map()
     
 #    pf.iterate(pf.messages[1])
 #    pf.particles_to_map()
@@ -504,11 +530,15 @@ def test():
     print part.theta
     print part.distances
     
-#    """Initialize particle filter"""
-#    pf = Particle_Filter(map1, 50)
-#    
-#    """Retrieve Data"""
-#    parse_trajectories(f2, pf)
+    """Initialize particle filter"""
+    pf = Particle_Filter(map1, 50)
+    
+    """Retrieve Data"""
+    parse_trajectories(f2, pf)
+    
+    pf.particles.append(part)
+    
+    pf.compute_weights2(pf.messages[0])
 #    
 #    prev=(pf.x_start,pf.y_start)
 #    for message in pf.messages:

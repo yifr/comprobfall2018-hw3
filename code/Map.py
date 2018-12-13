@@ -111,21 +111,39 @@ class Map_2D():
         gradient=1.0/div
         counter=0.0
         odd=0
+        
+        estimated_path=[]
+        prev_x=0
+        prev_y=0
         for part_list in self.particles_list:
-            print counter
+#            print counter
             if odd%2==0:
+                avg_x=0
+                avg_y=0
                 for pt in part_list:
                     plt.plot(pt[0],pt[1],marker='o', markersize=1, color=(counter,1-counter,0.5))
-            else:
-                for pt in part_list:
-#                    print pt[2]*10.0
-                    plt.plot(pt[0],pt[1],marker='o', markersize=2, color="black")
+                    avg_x+=pt[0]
+                    avg_y+=pt[1]
+                avg_x/=len(part_list)
+                avg_y/=len(part_list)
+                if odd!=0:
+                    estimated_path.append([(prev_x,prev_y),(avg_x,avg_y)])
+                prev_x=avg_x
+                prev_y=avg_y
+#            else:
+#                for pt in part_list:
+##                    print pt[2]*10.0
+#                    plt.plot(pt[0],pt[1],marker='o', markersize=2, color="black")
             counter= counter+gradient
             odd+=1
         #add robot path
         plt.plot(self.path[0][0][0],self.path[0][0][1],marker='o', markersize=5,color="black")
         lc = mc.LineCollection(self.path,linewidths = 2.5,color="black")
         ax.add_collection(lc)
+        
+        #Add Estimated Path
+        ac=mc.LineCollection(estimated_path,linewidths = 2.5,color="orange")
+        ax.add_collection(ac)
         
 #        ac = mc.LineCollection(self.scan,linewidths = 0.1,color="black")
 #        ax.add_collection(ac)
