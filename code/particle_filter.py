@@ -22,7 +22,7 @@ class Particle_Filter():
     x_start = 0
     y_start = 0
     messages = []   
-    scan_noise = 0.1
+    scan_noise = 0.001
     
     #Initialize filter with n uniformly distributed particles
     def __init__(self, _map, n):
@@ -50,10 +50,10 @@ class Particle_Filter():
         for particle in self.particles:
             particle.weight /= total_weight
             
-        print "Particles sum to: "
-        p = [particle.weight for particle in self.particles]
-        print p
-        print sum(p)
+#        print "Particles sum to: "
+#        p = [particle.weight for particle in self.particles]
+#        print p
+#        print sum(p)
     
     def resample(self):
         new_particles=[]
@@ -93,7 +93,7 @@ class Particle_Filter():
                 x=self.particles[part_index].x+math.cos(heading)*dist
                 y=self.particles[part_index].y+math.sin(heading)*dist
             
-            theta=random.random()*2*math.pi
+            theta=st.norm.ppf(random.random())*self.scan_noise+self.particles[part_index].theta
             
             """Scan and add particle"""
             particle=Particle(x,y,theta)
@@ -106,16 +106,16 @@ class Particle_Filter():
     def particles_to_map(self):
         particles_xy=[]
         
-        tot_weight=0
-        for p in self.particles:
-            tot_weight+=p.weight
-        
-        if tot_weight==0:
-            tot_weight=1
+#        tot_weight=0
+#        for p in self.particles:
+#            tot_weight+=p.weight
+#        
+#        if tot_weight==0:
+#            tot_weight=1
         
         for part in self.particles:
-            print part.weight
-            particles_xy.append((part.x,part.y,float(part.weight)))
+#            print part.weight
+            particles_xy.append((part.x,part.y,part.weight))
         self.map.particles_list.append(particles_xy)
     
     def propogate(self,message):
@@ -192,6 +192,14 @@ class Particle_Filter():
         c1_time = time.time()
         print "\t Completed propogating (" + str(c1_time-start_time) + ") total seconds taken."
         self.compute_weights(message)
+        
+        for particle in self.particles:
+            if particle.weight>0.02:
+                print format(particle.weight, '.2f')
+                print "(", particle.x, ", ",particle.y,", ",particle.theta,")"
+                print particle.distances
+#        print
+        
         c2_time = time.time()
         print "\t Computed Weights (" + str(c2_time - c1_time) + ") total seconds taken."
         self.resample()
@@ -426,9 +434,9 @@ def main():
     pf.particles_to_map()
     
 #    print len(pf.messages)
-#    for i in range(1,10):
-#        pf.iterate(pf.messages[i])
-#        pf.particles_to_map()
+    for i in range(0,3):
+        pf.iterate(pf.messages[i])
+        pf.particles_to_map()
     
 #    for message in pf.messages:
 #        pf.iterate(message)
@@ -437,12 +445,12 @@ def main():
 #    pf.iterate(pf.messages[1])
 #    pf.particles_to_map()
 
-    for message in pf.messages:
-        ctime = time.time()
-        print "Iterating..."
-        pf.iterate(message, ctime)
-        pf.particles_to_map()
-    
+#    for message in pf.messages:
+#        ctime = time.time()
+#        print "Iterating..."
+#        pf.iterate(message, ctime)
+#        pf.particles_to_map()
+#    
     """Print robot Path"""
     prev=(pf.x_start,pf.y_start)
     for message in pf.messages:
@@ -454,14 +462,23 @@ def main():
     end = time.time()  
     map1.plot()
     
-    #pf.compute_weights(pf.messages[0])
-    
-    print ("Total time taken: ", end - start)
-    
-    #print pf.particles
+#    #pf.compute_weights(pf.messages[0])
+#    
+#    print ("Total time taken: ", end - start)
+#    
+#    print pf.particles
 
 def test():
-    print math.sin(math.pi/2)
+    number = raw_input("Which map do you want to visualize? \nEnter 1, 2, 3, 4, 5, 6 or 7 to continue: ")
+    print 
+    f1 = "../turtlebot_maps/map_"+str(number)+".txt"
+    map1 = Map_2D(f1)
+
+    f2 = '../turtlebot_maps/trajectories/trajectories_'+str(number)+'.txt'
+
+    part=Particle(-6,-1,-1.0*math.pi/2)
+    part.scan(map1)
+    print part.distances
 
 if __name__=='__main__':
-    main()
+    test()

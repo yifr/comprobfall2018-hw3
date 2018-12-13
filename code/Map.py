@@ -100,11 +100,11 @@ class Map_2D():
             print counter
             if odd%2==0:
                 for pt in part_list:
-                    plt.plot(pt[0],pt[1],marker='o', markersize=2, color=(counter,1-counter,0.5))
+                    plt.plot(pt[0],pt[1],marker='o', markersize=1, color=(counter,1-counter,0.5))
             else:
                 for pt in part_list:
-                    print pt[2]
-                    plt.plot(pt[0],pt[1],marker='o', markersize=pt[2], color="black")
+#                    print pt[2]*10.0
+                    plt.plot(pt[0],pt[1],marker='o', markersize=2, color="black")
             counter= counter+gradient
             odd+=1
         #add robot path
