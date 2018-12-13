@@ -194,11 +194,12 @@ class Particle_Filter():
         self.compute_weights(message)
         
         for particle in self.particles:
-            if particle.weight>0.02:
-                print format(particle.weight, '.2f')
-                print "(", particle.x, ", ",particle.y,", ",particle.theta,")"
-                print particle.distances
-#        print
+#            if particle.weight>0.021:
+#                print format(particle.weight, '.2f')
+#                print "(", particle.x, ", ",particle.y,", ",particle.theta,")"
+#                print particle.distances
+            print format(particle.weight, '.2f'),
+        print
         
         c2_time = time.time()
         print "\t Computed Weights (" + str(c2_time - c1_time) + ") total seconds taken."
@@ -439,7 +440,7 @@ def main():
     pf.particles_to_map()
     
 #    print len(pf.messages)
-    for i in range(0,3):
+    for i in range(0,5):
         pf.iterate(pf.messages[i])
         pf.particles_to_map()
     
