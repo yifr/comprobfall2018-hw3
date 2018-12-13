@@ -63,8 +63,9 @@ class Map_2D():
         if point2==None:
             point=shp.Point(point1[0],point1[1])
             for obs in self.obstacles:
-                if point.within(obs) and not point.touches(obs):
+                if point.within(obs) or point.touches(obs):
                     return True
+            return False
         else:
             path =shp.LineString([point1,point2])
             if self.buff>0:
