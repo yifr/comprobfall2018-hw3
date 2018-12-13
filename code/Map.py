@@ -18,6 +18,7 @@ class Map_2D():
     def __init__(self, world):
         self.particles_list=[]
         self.path=[]
+        self.scan=[]
         
         coords = []
         f = open(world)
@@ -93,7 +94,10 @@ class Map_2D():
             ax.add_patch(patch)
             
         #Add particles from beginning to end
-        gradient=1.0/len(self.particles_list)
+        div=1
+        if div==0:
+            div=1
+        gradient=1.0/div
         counter=0.0
         odd=0
         for part_list in self.particles_list:
@@ -108,9 +112,12 @@ class Map_2D():
             counter= counter+gradient
             odd+=1
         #add robot path
-        plt.plot(self.path[0][0][0],self.path[0][0][1],marker='o', markersize=5,color="black")
-        lc = mc.LineCollection(self.path,linewidths = 2.5,color="black")
+#        plt.plot(self.path[0][0][0],self.path[0][0][1],marker='o', markersize=5,color="black")
+        lc = mc.LineCollection(self.path,linewidths = 2.5,color="red")
         ax.add_collection(lc)
+        
+        ac = mc.LineCollection(self.scan,linewidths = 0.1,color="black")
+        ax.add_collection(ac)
         
 #        ax = plt.axes(xlim=(self.min_x, self.max_x), ylim=(self.min_y, self.max_y))
 

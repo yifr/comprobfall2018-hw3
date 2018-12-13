@@ -227,11 +227,14 @@ class Particle:
         #Take scans from -30 to 30 degrees at 1.125 intervals
         scan_angle = 30
         for i in range(54):
-            angle = self.theta - scan_angle
-            scan_point = (10*math.cos(math.radians(angle)),  10*math.sin(math.radians(angle)))
+            angle = np.degrees(self.theta) - scan_angle
+            scan_point = (10*math.cos(math.radians(angle))+self.x,  10*math.sin(math.radians(angle))+self.y)
+            print scan_point
             line = LineString([(self.x, self.y), scan_point])
             closest_collision_distance = 10000
-    
+            
+            _map.scan.append(line)
+            
             #Find closest obstacle for collision:
             for o in obstacles:
                 collision = line.intersection(o)
@@ -242,7 +245,7 @@ class Particle:
             if closest_collision_distance == 10000:
                 closest_collision_distance = float('NaN')
 
-            hq.heappush(self.distances, closest_collision_distance)
+            self.distances.append( closest_collision_distance)
             scan_angle -= 1.125
 
     def compute_distance(self, collision):
@@ -268,7 +271,7 @@ class Particle:
                 min_dist = min(min_dist, dist)
                 break   #First point is the closest - loop is unnecessary, as it turns out.
             if min_dist >= 0.45 and min_dist <= 10.0:
-                return dist
+                return min_dist
             else:
                 return 10000
 
@@ -283,7 +286,7 @@ class Particle:
                     break #Again, first point is always the closest - this loop is also unnecessary
                 break
             if min_dist >= 0.45 and min_dist <= 10.0:
-                return dist
+                return min_dist
             else:
                 return 10000
 
@@ -476,9 +479,28 @@ def test():
 
     f2 = '../turtlebot_maps/trajectories/trajectories_'+str(number)+'.txt'
 
-    part=Particle(-6,-1,-1.0*math.pi/2)
+    part=Particle(-6,1,-1.0*math.pi/2)
     part.scan(map1)
+    print part.theta
     print part.distances
+    
+#    """Initialize particle filter"""
+#    pf = Particle_Filter(map1, 50)
+#    
+#    """Retrieve Data"""
+#    parse_trajectories(f2, pf)
+#    
+#    prev=(pf.x_start,pf.y_start)
+#    for message in pf.messages:
+#        new_x=prev[0]+math.cos(message.heading)*message.distance
+#        new_y=prev[1]+math.sin(message.heading)*message.distance
+#        part=Particle(prev[0],prev[1],message.heading)
+#        part.scan(map1)
+#        current=(new_x,new_y)
+#        map1.path.append([prev,current])
+#        prev=current
+#    
+#    map1.plot()
 
 if __name__=='__main__':
     test()
