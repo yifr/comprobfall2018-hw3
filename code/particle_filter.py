@@ -207,8 +207,8 @@ class Particle:
         #Take scans from -30 to 30 degrees at 1.125 intervals
         scan_angle = 30
         for i in range(54):
-            angle = self.theta - scan_angle
-            scan_point = (10*math.cos(math.radians(angle)),  10*math.sin(math.radians(angle)))
+            angle = math.degrees(self.theta) - scan_angle
+            scan_point = (10*math.cos(math.radians(angle)) + self.x,  10*math.sin(math.radians(angle)) + self.y)
             line = LineString([(self.x, self.y), scan_point])
             closest_collision_distance = 10000
     
@@ -248,7 +248,7 @@ class Particle:
                 min_dist = min(min_dist, dist)
                 break   #First point is the closest - loop is unnecessary, as it turns out.
             if min_dist >= 0.45 and min_dist <= 10.0:
-                return dist
+                return min_dist
             else:
                 return 10000
 
@@ -263,7 +263,7 @@ class Particle:
                     break #Again, first point is always the closest - this loop is also unnecessary
                 break
             if min_dist >= 0.45 and min_dist <= 10.0:
-                return dist
+                return min_dist
             else:
                 return 10000
 
