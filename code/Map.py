@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
 from shapely.geometry import Point
+from shapely.geometry import LineString
 from shapely.geometry.polygon import Polygon
 from matplotlib import collections as mc
 import shapely.geometry as shp
@@ -34,6 +35,16 @@ class Map_2D():
         self.min_y = make_tuple(walls[3])[1]
         self.max_y = make_tuple(walls[1])[1]
         
+        wall1 = LineString([(self.min_x, self.min_y), (self.max_x, self.min_y)])
+        wall2 = LineString([(self.max_x, self.min_y), (self.max_x, self.max_y)])
+        wall3 = LineString([(self.max_x, self.max_y), (self.min_x, self.max_y)])
+        wall4 = LineString([(self.min_x, self.max_y), (self.min_x, self.min_y)])
+
+        self.obstacles.append(wall1)
+        self.obstacles.append(wall2)
+        self.obstacles.append(wall3)
+        self.obstacles.append(wall4)
+
         #Create obstacles
         for obstacle in obstacles:
             formatted = obstacle[0].split(' ')

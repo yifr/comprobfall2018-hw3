@@ -227,9 +227,11 @@ class Particle:
         #Take scans from -30 to 30 degrees at 1.125 intervals
         scan_angle = 30
         for i in range(54):
-            angle = np.degrees(self.theta) - scan_angle
-            scan_point = (10*math.cos(math.radians(angle))+self.x,  10*math.sin(math.radians(angle))+self.y)
+
+            angle = math.degrees(self.theta) - scan_angle
+            scan_point = (10*math.cos(math.radians(angle)) + self.x,  10*math.sin(math.radians(angle)) + self.y)
             print scan_point
+            
             line = LineString([(self.x, self.y), scan_point])
             closest_collision_distance = 10000
             
