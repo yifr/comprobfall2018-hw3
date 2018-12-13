@@ -38,10 +38,10 @@ class Particle_Filter():
             weight = 1/(math.sqrt(2*pi)*std)*math.e**-(d**2/(2*std**2))
             particle.weight = weight / self.n
             
-#        print "Particles sum to: "
-#        p = [particle.weight for particle in self.particles]
-#        print p
-#        print sum(p)
+        print "Particles sum to: "
+        p = [particle.weight for particle in self.particles]
+        print p
+        print sum(p)
     
     def resample(self):
         new_particles=[]
@@ -92,8 +92,17 @@ class Particle_Filter():
     
     def particles_to_map(self):
         particles_xy=[]
+        
+        tot_weight=0
+        for p in self.particles:
+            tot_weight+=p.weight
+        
+        if tot_weight==0:
+            tot_weight=1
+        
         for part in self.particles:
-            particles_xy.append((part.x,part.y))
+            print part.weight
+            particles_xy.append((part.x,part.y,float(part.weight)))
         self.map.particles_list.append(particles_xy)
     
     def propogate(self,message):
@@ -159,6 +168,8 @@ class Particle_Filter():
 #        print ("Total time taken: ", end - start)
         
         self.propogate(message)
+        
+        self.particles_to_map()
         
         self.compute_weights(message)
         
@@ -302,13 +313,17 @@ def main():
     
     pf.particles_to_map()
     
+    print len(pf.messages)
 #    for i in range(1,10):
 #        pf.iterate(pf.messages[i])
 #        pf.particles_to_map()
     
-    for message in pf.messages:
-        pf.iterate(message)
-        pf.particles_to_map()
+#    for message in pf.messages:
+#        pf.iterate(message)
+#        pf.particles_to_map()
+    
+    pf.iterate(pf.messages[1])
+    pf.particles_to_map()
     
     """Print robot Path"""
     prev=(pf.x_start,pf.y_start)

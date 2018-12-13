@@ -93,11 +93,18 @@ class Map_2D():
         #Add particles from beginning to end
         gradient=1.0/len(self.particles_list)
         counter=0.0
+        odd=0
         for part_list in self.particles_list:
             print counter
-            for pt in part_list:
-                plt.plot(pt[0],pt[1],marker='o', markersize=1, color=(0,counter,1))
+            if odd%2==0:
+                for pt in part_list:
+                    plt.plot(pt[0],pt[1],marker='o', markersize=2, color=(counter,1-counter,0.5))
+            else:
+                for pt in part_list:
+                    print pt[2]
+                    plt.plot(pt[0],pt[1],marker='o', markersize=pt[2], color="black")
             counter= counter+gradient
+            odd+=1
         #add robot path
         plt.plot(self.path[0][0][0],self.path[0][0][1],marker='o', markersize=5,color="black")
         lc = mc.LineCollection(self.path,linewidths = 2.5,color="black")
