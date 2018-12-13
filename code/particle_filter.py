@@ -38,14 +38,22 @@ class Particle_Filter():
         mean_robot_dist = sum([distance for distance in message.scan_data if not math.isnan(distance)]) / len(message.scan_data)
         std = self.scan_noise
         for particle in self.particles:
+            mean_particle_dist = 0
+            '''
+            for i in range(len(message.scan_data)):
+                if message.scan_data[i] != float('NaN'):
+                    mean_particle_dist += particle.distances[i]
+            '''
             mean_particle_dist = sum([distance for distance in particle.distances if not math.isnan(distance)])
             mean_particle_dist /= len(particle.distances)
             d = mean_particle_dist - mean_robot_dist
-            weight = 1/(math.sqrt(2*pi)*std)*math.e**-(d**2/(2*std**2)) + 0.00001
-            particle.weight = weight / self.n
+            weight = 1/(math.sqrt(2*pi)*std)*math.e**(-d**2/(2*std**2)) + 0.00001
+            particle.weight = weight #/ self.n
         
         #Normalize weights:
         weights = [particle.weight for particle in self.particles]
+        print 'Weights:'
+        print weights
         total_weight = sum(weights)
         for particle in self.particles:
             particle.weight /= total_weight
