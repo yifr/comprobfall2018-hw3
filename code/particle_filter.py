@@ -22,7 +22,7 @@ class Particle_Filter():
     x_start = 0
     y_start = 0
     messages = []   
-    scan_noise = 0.001
+    scan_noise = 0.1
     
     #Initialize filter with n uniformly distributed particles
     def __init__(self, _map, n):
@@ -230,12 +230,12 @@ class Particle:
 
             angle = math.degrees(self.theta) - scan_angle
             scan_point = (10*math.cos(math.radians(angle)) + self.x,  10*math.sin(math.radians(angle)) + self.y)
-            print scan_point
+#            print scan_point
             
             line = LineString([(self.x, self.y), scan_point])
             closest_collision_distance = 10000
             
-            _map.scan.append(line)
+#            _map.scan.append(line)
             
             #Find closest obstacle for collision:
             for o in obstacles:
@@ -505,4 +505,4 @@ def test():
 #    map1.plot()
 
 if __name__=='__main__':
-    test()
+    main()
