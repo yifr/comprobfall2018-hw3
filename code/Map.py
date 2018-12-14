@@ -126,6 +126,7 @@ class Map_2D():
                     avg_y+=pt[1]
                 avg_x/=len(part_list)
                 avg_y/=len(part_list)
+                plt.plot(avg_x, avg_y, marker='x', markersize=10,mew=2, color='black')
                 if odd!=0:
                     estimated_path.append([(prev_x,prev_y),(avg_x,avg_y)])
                 prev_x=avg_x

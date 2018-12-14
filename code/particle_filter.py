@@ -38,7 +38,7 @@ class Particle_Filter():
         std = self.scan_noise
         for particle in self.particles:
             distance_probs = []
-            count=0
+            count=1
             for i in range(54):
                 if not math.isnan(message.scan_data[i]):
                     if math.isnan(particle.distances[i]):
@@ -46,7 +46,7 @@ class Particle_Filter():
 #                    print message.scan_data[i], ", ",particle.distances[i]
                     else:
                         d=particle.distances[i] - message.scan_data[i]
-                    weight = 1/(math.sqrt(2*pi)*std)*math.e**(-d**2/(2*std**2))
+                    weight = 1/(math.sqrt(2*pi)*std)*math.e**(-d**2/(2*std**2))+0.000001
 #                    print weight
                     distance_probs.append(weight)
                     count += 1
@@ -57,6 +57,8 @@ class Particle_Filter():
         print 'Weights:'
 #        print weights
         total_weight = sum(weights)
+        if total_weight == 0:
+            total_weight = 1
         for particle in self.particles:
             particle.weight /= total_weight
             
@@ -108,6 +110,8 @@ class Particle_Filter():
             weights.append(p.weight)
             tot_weight+=p.weight
 
+        if tot_weight == 0:
+            tot_weight = 1
         counter=0
         while counter<len(weights):
             weights[counter]=weights[counter]/tot_weight
@@ -122,6 +126,8 @@ class Particle_Filter():
             mark=random.random()
             part_index=0
             while mark>weights[part_index]:
+                if part_index == len(weights) - 2:
+                    break
                 part_index+=1
             
             """Get new particle pose"""
@@ -148,14 +154,7 @@ class Particle_Filter():
     
     def particles_to_map(self):
         particles_xy=[]
-        
-#        tot_weight=0
-#        for p in self.particles:
-#            tot_weight+=p.weight
-#        
-#        if tot_weight==0:
-#            tot_weight=1
-        
+
         for part in self.particles:
 #            print part.weight
             particles_xy.append((part.x,part.y,part.weight))
@@ -469,8 +468,10 @@ def main():
 #    end = time.time()
 #    print "Read: " + str(i) + " messages. Total time taken: ", end - start
 #    end = time.time()
+    n = int(raw_input("How many particles would you like? "))
+    print
     """Initialize particle filter"""
-    pf = Particle_Filter(map1, 50)
+    pf = Particle_Filter(map1, n)
     
     """Retrieve Data"""
     parse_trajectories(f2, pf)
@@ -488,18 +489,10 @@ def main():
 #        pf.particles_to_map()
     
     for message in pf.messages:
-        pf.iterate(message)
+        ctime = time.time()
+        pf.iterate(message, ctime)
         pf.particles_to_map()
-    
-#    pf.iterate(pf.messages[1])
-#    pf.particles_to_map()
 
-#    for message in pf.messages:
-#        ctime = time.time()
-#        print "Iterating..."
-#        pf.iterate(message, ctime)
-#        pf.particles_to_map()
-#    
     """Print robot Path"""
     prev=(pf.x_start,pf.y_start)
     for message in pf.messages:
@@ -510,12 +503,8 @@ def main():
         prev=current
     end = time.time()  
     map1.plot()
-    
-#    #pf.compute_weights(pf.messages[0])
-#    
-#    print ("Total time taken: ", end - start)
-#    
-#    print pf.particles
+       
+    print ("Total time taken: ", end - start)
 
 def test():
     number = raw_input("Which map do you want to visualize? \nEnter 1, 2, 3, 4, 5, 6 or 7 to continue: ")
@@ -525,13 +514,9 @@ def test():
 
     f2 = '../turtlebot_maps/trajectories/trajectories_'+str(number)+'.txt'
 
-    part=Particle(-6,1,-1.0*math.pi/2)
-    part.scan(map1)
-    print part.theta
-    print part.distances
-    
+    n = int(raw_input("How many particles would you like to include in the filter? "))
     """Initialize particle filter"""
-    pf = Particle_Filter(map1, 50)
+    pf = Particle_Filter(map1, n)
     
     """Retrieve Data"""
     parse_trajectories(f2, pf)
