@@ -58,7 +58,9 @@ class Particle_Filter():
                     
 #                    distance_probs.append(weight)
 #                    tot_distances+=weight
-                count += 1
+                    count += 1
+            if count==0:
+                count=1
             particle.weight = tot_distances / count
 #            self.weights.append(particle.weight)
             self.total_weight+=particle.weight
@@ -172,13 +174,11 @@ class Particle_Filter():
                     part_index+=1
                     
                 """Sample new position"""
-#                heading=math.pi*random.random()
-#                dist=st.norm.ppf(random.random())*self.tran_noise
-#                x=self.particles[part_index].x+math.cos(heading)*dist
-#                y=self.particles[part_index].y+math.sin(heading)*dist
-                
-                x=self.particles[part_index].x
-                y=self.particles[part_index].y
+                heading=math.pi*random.random()
+                dist=st.norm.ppf(random.random())*self.tran_noise
+                x=self.particles[part_index].x+math.cos(heading)*dist
+                y=self.particles[part_index].y+math.sin(heading)*dist
+
             theta=st.norm.ppf(random.random())*self.rot_noise+self.particles[part_index].theta
             
             """Scan and add particle"""
@@ -222,20 +222,17 @@ class Particle_Filter():
         if known_start:
             for i in range(self.n):
                 """Get particle pose """
-#                heading=math.pi*random.random()
-#                dist=st.norm.ppf(random.random())*self.tran_noise
-#                x=self.x_start+math.cos(heading)*dist
-#                y=self.y_start+math.sin(heading)*dist
-#                """sample new point if collision"""
-#                while self.map.collide((x,y)):
-#                    heading=math.pi*random.random()
-#                    dist=st.norm.ppf(random.random())*self.tran_noise
-#                    x=self.x_start+math.cos(heading)*dist
-#                    y=self.y_start+math.sin(heading)*dist
-#                    print x," ",y
-                
-                x=self.x_start
-                y=self.y_start
+                heading=math.pi*random.random()
+                dist=st.norm.ppf(random.random())*self.tran_noise
+                x=self.x_start+math.cos(heading)*dist
+                y=self.y_start+math.sin(heading)*dist
+                """sample new point if collision"""
+                while self.map.collide((x,y)):
+                    heading=math.pi*random.random()
+                    dist=st.norm.ppf(random.random())*self.tran_noise
+                    x=self.x_start+math.cos(heading)*dist
+                    y=self.y_start+math.sin(heading)*dist
+                    print x," ",y
                 
                 theta=random.random()*2*pi
                 
@@ -311,19 +308,17 @@ class Particle:
 
     def scan(self, _map):
         self.distances = []     #Refresh distance list each time scan is called
-        obstacles = _map.obstacle_lines
+        obstacles = _map.obstacles
         #Take scans from -30 to 30 degrees at 1.125 intervals
         scan_angle = 30
         for i in range(54):
 
             angle = math.degrees(self.theta) - scan_angle
-#            angle=math.degrees(self.theta)
             scan_point = (10*math.cos(math.radians(angle)) + self.x,  10*math.sin(math.radians(angle)) + self.y)
-#            print scan_point
 #            print scan_point
             
             line = LineString([(self.x, self.y), scan_point])
-            closest_collision_distance = 100000
+            closest_collision_distance = -1
             
 #            _map.scan.append(line)
             
@@ -331,66 +326,56 @@ class Particle:
             for o in obstacles:
                 collision = line.intersection(o)
                 distance = self.compute_distance(collision)
-#                print closest_collision_distance
-                if distance>0 and distance < closest_collision_distance:
+                if distance < closest_collision_distance:
                     closest_collision_distance = distance
-            
-#            print i, " : ", angle, " : ",closest_collision_distance
-            
+
             if closest_collision_distance >10 or closest_collision_distance<0.45:
                 closest_collision_distance = float('NaN')
-            
+
             self.distances.append( closest_collision_distance)
             scan_angle -= 1.125
 
     def compute_distance(self, collision):
-        dist=-1
+        linestring_type = LineString([(0,0), (2,2)]).geom_type
         point_type = Point(0,0).geom_type
-        
-        if collision.geom_type == point_type:
-            dist=math.sqrt((self.x-collision.x)**2+(self.y-collision.y)**2)
-#            print collision, " ", dist
-        return dist
-#        linestring_type = LineString([(0,0), (2,2)]).geom_type
 
-#
-#        #Intersection with wall
-#        if collision.geom_type == point_type:
-#            (collision_x, collision_y) = (collision.coords[0][0], collision.coords[0][1])
-#            dist = math.sqrt((self.x - collision_x)**2 + (self.y - collision_y)**2) 
-#            if dist >= 0.45 and dist <= 10.0:
-#                return dist
-#            else:
-#                return 10000
-#
-#        #Intersection through obstacle
-#        elif collision.geom_type == linestring_type:
-#            endpoints = [collision.coords[0], collision.coords[1]]
-#            min_dist = 10000
-#            for tup in endpoints:
-#                (collision_x, collision_y) = (tup[0], tup[1])
-#                dist = math.sqrt((self.x - collision_x)**2 + (self.y - collision_y)**2) 
-#                min_dist = min(min_dist, dist)
-#                break   #First point is the closest - loop is unnecessary, as it turns out.
-#            if min_dist >= 0.45 and min_dist <= 10.0:
-#                return min_dist
-#            else:
-#                return 10000
-#
-#        #MultiLineString Intersection: Intersected disjoint objects
-#        else:
-#            min_dist = 10000
-#            for linestring in collision.geoms:
-#                endpoints = (linestring.coords[0], linestring.coords[1])
-#                for (collision_x, collision_y) in endpoints:
-#                    dist = math.sqrt((self.x - collision_x)**2 + (self.y - collision_y)**2) 
-#                    min_dist = min(min_dist, dist)
-#                    break #Again, first point is always the closest - this loop is also unnecessary
-#                break
-#            if min_dist >= 0.45 and min_dist <= 10.0:
-#                return min_dist
-#            else:
-#                return 10000
+        #Intersection with wall
+        if collision.geom_type == point_type:
+            (collision_x, collision_y) = (collision.coords[0][0], collision.coords[0][1])
+            dist = math.sqrt((self.x - collision_x)**2 + (self.y - collision_y)**2) 
+            if dist >= 0.45 and dist <= 10.0:
+                return dist
+            else:
+                return 10000
+
+        #Intersection through obstacle
+        elif collision.geom_type == linestring_type:
+            endpoints = [collision.coords[0], collision.coords[1]]
+            min_dist = 10000
+            for tup in endpoints:
+                (collision_x, collision_y) = (tup[0], tup[1])
+                dist = math.sqrt((self.x - collision_x)**2 + (self.y - collision_y)**2) 
+                min_dist = min(min_dist, dist)
+                break   #First point is the closest - loop is unnecessary, as it turns out.
+            if min_dist >= 0.45 and min_dist <= 10.0:
+                return min_dist
+            else:
+                return 10000
+
+        #MultiLineString Intersection: Intersected disjoint objects
+        else:
+            min_dist = 10000
+            for linestring in collision.geoms:
+                endpoints = (linestring.coords[0], linestring.coords[1])
+                for (collision_x, collision_y) in endpoints:
+                    dist = math.sqrt((self.x - collision_x)**2 + (self.y - collision_y)**2) 
+                    min_dist = min(min_dist, dist)
+                    break #Again, first point is always the closest - this loop is also unnecessary
+                break
+            if min_dist >= 0.45 and min_dist <= 10.0:
+                return min_dist
+            else:
+                return 10000
 
 
 class Message():
@@ -558,11 +543,10 @@ def main():
 
     pf.particles_to_map()
     
-#    map1.plot()
+    map1.plot()
     
 #    print len(pf.messages)
-#    for i in range(0,1):
-#        ctime = time.time()
+#    for i in range(0,3):
 #        pf.iterate(pf.messages[i])
 #        pf.particles_to_map()
     
@@ -570,7 +554,7 @@ def main():
         ctime = time.time()
         pf.iterate(message, ctime)
         pf.particles_to_map()
-#        map1.plot()
+        map1.plot()
     
     map1.plot()
     end = time.time() 
@@ -592,14 +576,8 @@ def test():
     """Retrieve Data"""
     parse_trajectories(f2, pf)
     
-    part=Particle(-4,2.1,-1.57079632679)
-    
-    part.scan(map1)
-    
     pf.particles.append(part)
     
-    pf.particles_to_map()
-    map1.plot()
     pf.compute_weights2(pf.messages[0])
 #    
 #    prev=(pf.x_start,pf.y_start)
