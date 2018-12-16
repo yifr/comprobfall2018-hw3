@@ -43,8 +43,12 @@ class Particle_Filter():
         self.total_weight=0
         
         for particle in self.particles:
+<<<<<<< HEAD
 #            distance_probs = []
             tot_distances=0
+=======
+            distance_probs = []
+>>>>>>> parent of 0cd5e93... seems like our particles are filtering
             count=0
             for i in range(54):
                 if not math.isnan(message.scan_data[i]):
@@ -53,7 +57,11 @@ class Particle_Filter():
 #                    print message.scan_data[i], ", ",particle.distances[i]
                     else:
                         d=particle.distances[i] - message.scan_data[i]
+<<<<<<< HEAD
                     tot_distances+= 1/(math.sqrt(2*pi)*std)*math.e**(-d**2/(2*std**2))+0.000001
+=======
+                    weight = 1/(math.sqrt(2*pi)*std)*math.e**(-d**2/(2*std**2))
+>>>>>>> parent of 0cd5e93... seems like our particles are filtering
 #                    print weight
                     
 #                    distance_probs.append(weight)
@@ -69,6 +77,14 @@ class Particle_Filter():
         std = self.scan_noise
         self.total_weight=0
         
+<<<<<<< HEAD
+=======
+        #Normalize weights:
+        weights = [particle.weight for particle in self.particles]
+        print 'Weights:'
+#        print weights
+        total_weight = sum(weights)
+>>>>>>> parent of 0cd5e93... seems like our particles are filtering
         for particle in self.particles:
             weight=1
             for i in range(54):
@@ -140,6 +156,7 @@ class Particle_Filter():
 #        tot_weight=0
         
         """Normalize Weights and set up 0 to 1 range"""
+<<<<<<< HEAD
 #        for p in self.particles:
 #            weights.append(p.weight)
 #            tot_weight+=p.weight
@@ -151,13 +168,30 @@ class Particle_Filter():
         for counter in range(len(self.particles)):
             self.weights.append(self.particles[counter].weight/self.total_weight)
             weights.append(self.weights[counter])
+=======
+        for p in self.particles:
+            weights.append(p.weight)
+            tot_weight+=p.weight
+
+        counter=0
+        while counter<len(weights):
+            weights[counter]=weights[counter]/tot_weight
+>>>>>>> parent of 0cd5e93... seems like our particles are filtering
             if counter>0:
                 weights[counter]=weights[counter]+weights[counter-1]
         
         """Resample with weight constraints"""
         counter=0
         while counter<self.n:
+<<<<<<< HEAD
             first=True
+=======
+            """Get particle index for neighborhood"""
+            mark=random.random()
+            part_index=0
+            while mark>weights[part_index]:
+                part_index+=1
+>>>>>>> parent of 0cd5e93... seems like our particles are filtering
             
             x=0
             y=0
@@ -191,7 +225,14 @@ class Particle_Filter():
     
     def particles_to_map(self):
         particles_xy=[]
-
+        
+#        tot_weight=0
+#        for p in self.particles:
+#            tot_weight+=p.weight
+#        
+#        if tot_weight==0:
+#            tot_weight=1
+        
         for part in self.particles:
 #            print part.weight
             particles_xy.append((part.x,part.y,part.weight))
@@ -508,6 +549,7 @@ def main():
 #    end = time.time()
 #    print "Read: " + str(i) + " messages. Total time taken: ", end - start
 #    end = time.time()
+<<<<<<< HEAD
     n = int(raw_input("How many particles would you like? "))
     
     known_start='y'==raw_input("does the robot know the start point?(y,n): ")
@@ -523,6 +565,10 @@ def main():
     pf.scan_noise=scan_noise
     pf.tran_noise=tran_noise
     pf.rot_noise=rot_noise
+=======
+    """Initialize particle filter"""
+    pf = Particle_Filter(map1, 50)
+>>>>>>> parent of 0cd5e93... seems like our particles are filtering
     
     """Retrieve Data"""
     parse_trajectories(f2, pf)
@@ -551,15 +597,43 @@ def main():
 #        pf.particles_to_map()
     
     for message in pf.messages:
-        ctime = time.time()
-        pf.iterate(message, ctime)
+        pf.iterate(message)
         pf.particles_to_map()
+<<<<<<< HEAD
         map1.plot()
     
     map1.plot()
     end = time.time() 
        
     print ("Total time taken: ", end - start)
+=======
+    
+#    pf.iterate(pf.messages[1])
+#    pf.particles_to_map()
+
+#    for message in pf.messages:
+#        ctime = time.time()
+#        print "Iterating..."
+#        pf.iterate(message, ctime)
+#        pf.particles_to_map()
+#    
+    """Print robot Path"""
+    prev=(pf.x_start,pf.y_start)
+    for message in pf.messages:
+        new_x=prev[0]+math.cos(message.heading)*message.distance
+        new_y=prev[1]+math.sin(message.heading)*message.distance
+        current=(new_x,new_y)
+        map1.path.append([prev,current])
+        prev=current
+    end = time.time()  
+    map1.plot()
+    
+#    #pf.compute_weights(pf.messages[0])
+#    
+#    print ("Total time taken: ", end - start)
+#    
+#    print pf.particles
+>>>>>>> parent of 0cd5e93... seems like our particles are filtering
 
 def test():
     number = raw_input("Which map do you want to visualize? \nEnter 1, 2, 3, 4, 5, 6 or 7 to continue: ")
@@ -569,9 +643,13 @@ def test():
 
     f2 = '../turtlebot_maps/trajectories/trajectories_'+str(number)+'.txt'
 
-    n = int(raw_input("How many particles would you like to include in the filter? "))
+    part=Particle(-6,1,-1.0*math.pi/2)
+    part.scan(map1)
+    print part.theta
+    print part.distances
+    
     """Initialize particle filter"""
-    pf = Particle_Filter(map1, n)
+    pf = Particle_Filter(map1, 50)
     
     """Retrieve Data"""
     parse_trajectories(f2, pf)
