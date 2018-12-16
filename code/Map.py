@@ -155,7 +155,8 @@ class Map_2D():
                 #add robot path
         plt.plot(self.path_x[0],self.path_y[0],marker='o', markersize=8,color="black")
         plt.plot(self.path_x,self.path_y,'-o',marker='o', markersize=1,color="black")
-
+        
+        
         
         plt.plot(avg_x_pts, avg_y_pts,'-o',marker='o', markersize=5,mew=2, color=est_color)
 
