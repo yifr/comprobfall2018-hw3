@@ -7,6 +7,7 @@ from shapely.geometry import Point
 from shapely.geometry import LineString
 from shapely.geometry.polygon import Polygon
 from matplotlib import collections as mc
+from matplotlib import path as pth
 import shapely.geometry as shp
 
 from ast import literal_eval as make_tuple
@@ -18,7 +19,8 @@ class Map_2D():
     #Takes path to map file as parameter
     def __init__(self, world):
         self.particles_list=[]
-        self.path=[]
+        self.path_x=[]
+        self.path_y=[]
 #        self.scan=[]
         
         coords = []
@@ -68,8 +70,7 @@ class Map_2D():
         self.obstacles.append(polygon)
         #Plot obstacle:
         vertices = np.array(points)
-        patch = patches.Polygon(vertices)
-        self.obstacle_patches.append(patch)
+        self.obstacle_patches.append(pth.Path(vertices))
         
     def collide(self,point1,point2=None):
         if point2==None:
@@ -102,8 +103,11 @@ class Map_2D():
         
         #Add obstacles
         for patch in self.obstacle_patches:
-            ax.add_patch(patch)
-            
+            ax.add_patch(patches.PathPatch(patch, facecolor='green'))
+        
+#        lc = mc.LineCollection(self.path,linewidths = 2.5,color="black")
+#        ax.add_collection(lc)
+        
         #Add particles from beginning to end
         div=len(self.particles_list)
         if div==0:
@@ -112,39 +116,44 @@ class Map_2D():
         counter=0.0
         odd=0
         
-        estimated_path=[]
-        prev_x=0
-        prev_y=0
+        est_color=(1,1,0)
+        
+        avg_x_pts=[]
+        avg_y_pts=[]
         for part_list in self.particles_list:
 #            print counter
             if odd%2==0:
                 avg_x=0
                 avg_y=0
                 for pt in part_list:
-                    plt.plot(pt[0],pt[1],marker='o', markersize=1, color=(counter,1-counter,0.5))
+                    plt.plot(pt[0],pt[1],marker='o', markersize=2, color=(1-counter,0,counter))
                     avg_x+=pt[0]
                     avg_y+=pt[1]
                 avg_x/=len(part_list)
                 avg_y/=len(part_list)
-                plt.plot(avg_x, avg_y, marker='x', markersize=10,mew=2, color='black')
-                if odd!=0:
-                    estimated_path.append([(prev_x,prev_y),(avg_x,avg_y)])
-                prev_x=avg_x
-                prev_y=avg_y
-#            else:
-#                for pt in part_list:
-##                    print pt[2]*10.0
-#                    plt.plot(pt[0],pt[1],marker='o', markersize=2, color="black")
+                avg_x_pts.append(avg_x)
+                avg_y_pts.append(avg_y)
+#                plt.plot(avg_x, avg_y,'-o', marker='o', markersize=5,mew=2, color=est_color)
+#                if odd!=0:
+#                    estimated_path.append([(prev_x,prev_y),(avg_x,avg_y)])
+
+            else:
+                for pt in part_list:
+#                    print pt[2]*10.0
+                    plt.plot(pt[0],pt[1],marker='o', markersize=2, color=(.1,.1,.1))
             counter= counter+gradient
             odd+=1
-        #add robot path
-        plt.plot(self.path[0][0][0],self.path[0][0][1],marker='o', markersize=5,color="black")
-        lc = mc.LineCollection(self.path,linewidths = 2.5,color="black")
-        ax.add_collection(lc)
         
+                #add robot path
+        plt.plot(self.path_x[0],self.path_y[0],marker='o', markersize=8,color="black")
+        plt.plot(self.path_x,self.path_y,'-o',marker='o', markersize=1,color="black")
+
+        
+        plt.plot(avg_x_pts, avg_y_pts,'-o',marker='o', markersize=5,mew=2, color=est_color)
+
         #Add Estimated Path
-        ac=mc.LineCollection(estimated_path,linewidths = 2.5,color="orange")
-        ax.add_collection(ac)
+#        ac=mc.LineCollection(estimated_path,linewidths = 2.5,color=est_color)
+#        ax.add_collection(ac)
         
 #        ac = mc.LineCollection(self.scan,linewidths = 0.1,color="black")
 #        ax.add_collection(ac)
