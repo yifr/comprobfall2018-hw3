@@ -15,6 +15,7 @@ from ast import literal_eval as make_tuple
 class Map_2D():
     obstacles = []
     obstacle_patches=[]
+    obstacle_lines=[]
     
     #Takes path to map file as parameter
     def __init__(self, world):
@@ -46,7 +47,12 @@ class Map_2D():
         self.obstacles.append(wall2)
         self.obstacles.append(wall3)
         self.obstacles.append(wall4)
-
+        
+        self.obstacle_lines.append(wall1)
+        self.obstacle_lines.append(wall2)
+        self.obstacle_lines.append(wall3)
+        self.obstacle_lines.append(wall4)
+        
         #Create obstacles
         for obstacle in obstacles:
             formatted = obstacle[0].split(' ')
@@ -63,6 +69,11 @@ class Map_2D():
 
             points = [make_tuple(point) for point in formatted]
             self.add_obstacle(points)
+            prev=points[0]
+            for i in range(1,len(points)):
+                self.obstacle_lines.append(LineString([prev,points[i]]))
+                prev=points[i]
+            self.obstacle_lines.append(LineString([points[0],prev]))
 
     def add_obstacle(self, points):
         #Add obstacle as Shapely object 
@@ -126,7 +137,7 @@ class Map_2D():
                 avg_x=0
                 avg_y=0
                 for pt in part_list:
-                    plt.plot(pt[0],pt[1],marker='o', markersize=2, color=(1-counter,0,counter))
+                    plt.plot(pt[0],pt[1],marker='o', markersize=4, color=(1-counter,0,counter))
                     avg_x+=pt[0]
                     avg_y+=pt[1]
                 avg_x/=len(part_list)
@@ -140,7 +151,7 @@ class Map_2D():
             else:
                 for pt in part_list:
 #                    print pt[2]*10.0
-                    plt.plot(pt[0],pt[1],marker='o', markersize=2, color=(.1,.1,.1))
+                    plt.plot(pt[0],pt[1],marker='o', markersize=2, color=(.2,.2,.2))
             counter= counter+gradient
             odd+=1
         
