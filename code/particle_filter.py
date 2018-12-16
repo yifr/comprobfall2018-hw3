@@ -229,17 +229,6 @@ class Particle_Filter():
         if known_start:
             for i in range(self.n):
                 """Get particle pose """
-#                heading=math.pi*random.random()
-#                dist=st.norm.ppf(random.random())*self.tran_noise
-#                x=self.x_start+math.cos(heading)*dist
-#                y=self.y_start+math.sin(heading)*dist
-#                """sample new point if collision"""
-#                while self.map.collide((x,y)):
-#                    heading=math.pi*random.random()
-#                    dist=st.norm.ppf(random.random())*self.tran_noise
-#                    x=self.x_start+math.cos(heading)*dist
-#                    y=self.y_start+math.sin(heading)*dist
-#                    print x," ",y
                 
                 x=self.x_start
                 y=self.y_start
@@ -264,35 +253,13 @@ class Particle_Filter():
         self.particles=new_particles
 
     def iterate(self,message, start_time=0):
-        #main()
-#        self.intSample()
-        
-#        pf = Particle_Filter(map1, 100)
-#        parse_trajectories(f2, pf)
-#        for particle in pf.particles:
-#            particle.scan(map1)
-#        pf.compute_weights(pf.messages[0])
-#        end = time.time()
-#        print ("Total time taken: ", end - start)
-        
+
         self.propogate(message)
-        
-        self.particles_to_map()
-        
+                
         c1_time = time.time()
         print "\t Completed propogating (" + str(c1_time-start_time) + ") total seconds taken."
         self.compute_weights2(message)
-        
-#        for weight in self.weights:
-##            if particle.weight>0.021:
-##                print format(particle.weight, '.2f')
-##                print "(", particle.x, ", ",particle.y,", ",particle.theta,")"
-##                print particle.distances
-#            print format(weight, '.2f'),
-#        print
-#        for particle in self.particles:
-#            print format(particle.weight, '.2f'),
-#        print
+
         
         c2_time = time.time()
         print "\t Computed Weights (" + str(c2_time - c1_time) + ") total seconds taken."

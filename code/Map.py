@@ -125,7 +125,6 @@ class Map_2D():
             div=1
         gradient=1.0/div
         counter=0.0
-        odd=0
         
         est_color=(1,1,0)
         
@@ -133,31 +132,25 @@ class Map_2D():
         avg_y_pts=[]
         for part_list in self.particles_list:
 #            print counter
-            if odd%2==0:
-                avg_x=0
-                avg_y=0
-                for pt in part_list:
-                    plt.plot(pt[0],pt[1],marker='o', markersize=4, color=(1-counter,0,counter))
-                    avg_x+=pt[0]
-                    avg_y+=pt[1]
-                avg_x/=len(part_list)
-                avg_y/=len(part_list)
-                avg_x_pts.append(avg_x)
-                avg_y_pts.append(avg_y)
+            avg_x=0
+            avg_y=0
+            for pt in part_list:
+                plt.plot(pt[0],pt[1],marker='o', markersize=1, color=(1-counter,0,counter))
+                avg_x+=pt[0]
+                avg_y+=pt[1]
+            avg_x/=len(part_list)
+            avg_y/=len(part_list)
+            avg_x_pts.append(avg_x)
+            avg_y_pts.append(avg_y)
 #                plt.plot(avg_x, avg_y,'-o', marker='o', markersize=5,mew=2, color=est_color)
 #                if odd!=0:
 #                    estimated_path.append([(prev_x,prev_y),(avg_x,avg_y)])
-            else:
-                for pt in part_list:
-#                    print pt[2]*10.0
-                    plt.plot(pt[0],pt[1],marker='o', markersize=2, color=(.2,.2,.2))
 #            else:
 #                for pt in part_list:
 ##                    print pt[2]*10.0
 #                    plt.plot(pt[0],pt[1],marker='o', markersize=2, color="black")
 
             counter= counter+gradient
-            odd+=1
         
                 #add robot path
         plt.plot(self.path_x[0],self.path_y[0],marker='o', markersize=8,color="black")
@@ -166,14 +159,7 @@ class Map_2D():
         
         plt.plot(avg_x_pts, avg_y_pts,'-o',marker='o', markersize=5,mew=2, color=est_color)
 
-        #Add Estimated Path
-#        ac=mc.LineCollection(estimated_path,linewidths = 2.5,color=est_color)
-#        ax.add_collection(ac)
-        
-#        ac = mc.LineCollection(self.scan,linewidths = 0.1,color="black")
-#        ax.add_collection(ac)
-        
-#        ax = plt.axes(xlim=(self.min_x, self.max_x), ylim=(self.min_y, self.max_y))
+
 
         plt.show()
 '''
