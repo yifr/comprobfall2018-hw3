@@ -43,12 +43,8 @@ class Particle_Filter():
         self.total_weight=0
         
         for particle in self.particles:
-<<<<<<< HEAD
 #            distance_probs = []
             tot_distances=0
-=======
-            distance_probs = []
->>>>>>> parent of 0cd5e93... seems like our particles are filtering
             count=0
             for i in range(54):
                 if not math.isnan(message.scan_data[i]):
@@ -57,18 +53,12 @@ class Particle_Filter():
 #                    print message.scan_data[i], ", ",particle.distances[i]
                     else:
                         d=particle.distances[i] - message.scan_data[i]
-<<<<<<< HEAD
                     tot_distances+= 1/(math.sqrt(2*pi)*std)*math.e**(-d**2/(2*std**2))+0.000001
-=======
-                    weight = 1/(math.sqrt(2*pi)*std)*math.e**(-d**2/(2*std**2))
->>>>>>> parent of 0cd5e93... seems like our particles are filtering
 #                    print weight
                     
 #                    distance_probs.append(weight)
 #                    tot_distances+=weight
-                    count += 1
-            if count==0:
-                count=1
+                count += 1
             particle.weight = tot_distances / count
 #            self.weights.append(particle.weight)
             self.total_weight+=particle.weight
@@ -77,14 +67,6 @@ class Particle_Filter():
         std = self.scan_noise
         self.total_weight=0
         
-<<<<<<< HEAD
-=======
-        #Normalize weights:
-        weights = [particle.weight for particle in self.particles]
-        print 'Weights:'
-#        print weights
-        total_weight = sum(weights)
->>>>>>> parent of 0cd5e93... seems like our particles are filtering
         for particle in self.particles:
             weight=1
             for i in range(54):
@@ -156,7 +138,6 @@ class Particle_Filter():
 #        tot_weight=0
         
         """Normalize Weights and set up 0 to 1 range"""
-<<<<<<< HEAD
 #        for p in self.particles:
 #            weights.append(p.weight)
 #            tot_weight+=p.weight
@@ -168,31 +149,14 @@ class Particle_Filter():
         for counter in range(len(self.particles)):
             self.weights.append(self.particles[counter].weight/self.total_weight)
             weights.append(self.weights[counter])
-=======
-        for p in self.particles:
-            weights.append(p.weight)
-            tot_weight+=p.weight
-
-        counter=0
-        while counter<len(weights):
-            weights[counter]=weights[counter]/tot_weight
->>>>>>> parent of 0cd5e93... seems like our particles are filtering
             if counter>0:
                 weights[counter]=weights[counter]+weights[counter-1]
         
         """Resample with weight constraints"""
         counter=0
         while counter<self.n:
-<<<<<<< HEAD
             first=True
-=======
-            """Get particle index for neighborhood"""
-            mark=random.random()
-            part_index=0
-            while mark>weights[part_index]:
-                part_index+=1
->>>>>>> parent of 0cd5e93... seems like our particles are filtering
-            
+          
             x=0
             y=0
             """sample new point if collision"""
@@ -208,11 +172,13 @@ class Particle_Filter():
                     part_index+=1
                     
                 """Sample new position"""
-                heading=math.pi*random.random()
-                dist=st.norm.ppf(random.random())*self.tran_noise
-                x=self.particles[part_index].x+math.cos(heading)*dist
-                y=self.particles[part_index].y+math.sin(heading)*dist
-
+#                heading=math.pi*random.random()
+#                dist=st.norm.ppf(random.random())*self.tran_noise
+#                x=self.particles[part_index].x+math.cos(heading)*dist
+#                y=self.particles[part_index].y+math.sin(heading)*dist
+                
+                x=self.particles[part_index].x
+                y=self.particles[part_index].y
             theta=st.norm.ppf(random.random())*self.rot_noise+self.particles[part_index].theta
             
             """Scan and add particle"""
@@ -263,17 +229,20 @@ class Particle_Filter():
         if known_start:
             for i in range(self.n):
                 """Get particle pose """
-                heading=math.pi*random.random()
-                dist=st.norm.ppf(random.random())*self.tran_noise
-                x=self.x_start+math.cos(heading)*dist
-                y=self.y_start+math.sin(heading)*dist
-                """sample new point if collision"""
-                while self.map.collide((x,y)):
-                    heading=math.pi*random.random()
-                    dist=st.norm.ppf(random.random())*self.tran_noise
-                    x=self.x_start+math.cos(heading)*dist
-                    y=self.y_start+math.sin(heading)*dist
-                    print x," ",y
+#                heading=math.pi*random.random()
+#                dist=st.norm.ppf(random.random())*self.tran_noise
+#                x=self.x_start+math.cos(heading)*dist
+#                y=self.y_start+math.sin(heading)*dist
+#                """sample new point if collision"""
+#                while self.map.collide((x,y)):
+#                    heading=math.pi*random.random()
+#                    dist=st.norm.ppf(random.random())*self.tran_noise
+#                    x=self.x_start+math.cos(heading)*dist
+#                    y=self.y_start+math.sin(heading)*dist
+#                    print x," ",y
+                
+                x=self.x_start
+                y=self.y_start
                 
                 theta=random.random()*2*pi
                 
@@ -349,17 +318,19 @@ class Particle:
 
     def scan(self, _map):
         self.distances = []     #Refresh distance list each time scan is called
-        obstacles = _map.obstacles
+        obstacles = _map.obstacle_lines
         #Take scans from -30 to 30 degrees at 1.125 intervals
         scan_angle = 30
         for i in range(54):
 
             angle = math.degrees(self.theta) - scan_angle
+#            angle=math.degrees(self.theta)
             scan_point = (10*math.cos(math.radians(angle)) + self.x,  10*math.sin(math.radians(angle)) + self.y)
+#            print scan_point
 #            print scan_point
             
             line = LineString([(self.x, self.y), scan_point])
-            closest_collision_distance = -1
+            closest_collision_distance = 100000
             
 #            _map.scan.append(line)
             
@@ -367,56 +338,66 @@ class Particle:
             for o in obstacles:
                 collision = line.intersection(o)
                 distance = self.compute_distance(collision)
-                if distance < closest_collision_distance:
+#                print closest_collision_distance
+                if distance>0 and distance < closest_collision_distance:
                     closest_collision_distance = distance
-
+            
+#            print i, " : ", angle, " : ",closest_collision_distance
+            
             if closest_collision_distance >10 or closest_collision_distance<0.45:
                 closest_collision_distance = float('NaN')
-
+            
             self.distances.append( closest_collision_distance)
             scan_angle -= 1.125
 
     def compute_distance(self, collision):
-        linestring_type = LineString([(0,0), (2,2)]).geom_type
+        dist=-1
         point_type = Point(0,0).geom_type
-
-        #Intersection with wall
+        
         if collision.geom_type == point_type:
-            (collision_x, collision_y) = (collision.coords[0][0], collision.coords[0][1])
-            dist = math.sqrt((self.x - collision_x)**2 + (self.y - collision_y)**2) 
-            if dist >= 0.45 and dist <= 10.0:
-                return dist
-            else:
-                return 10000
+            dist=math.sqrt((self.x-collision.x)**2+(self.y-collision.y)**2)
+#            print collision, " ", dist
+        return dist
+#        linestring_type = LineString([(0,0), (2,2)]).geom_type
 
-        #Intersection through obstacle
-        elif collision.geom_type == linestring_type:
-            endpoints = [collision.coords[0], collision.coords[1]]
-            min_dist = 10000
-            for tup in endpoints:
-                (collision_x, collision_y) = (tup[0], tup[1])
-                dist = math.sqrt((self.x - collision_x)**2 + (self.y - collision_y)**2) 
-                min_dist = min(min_dist, dist)
-                break   #First point is the closest - loop is unnecessary, as it turns out.
-            if min_dist >= 0.45 and min_dist <= 10.0:
-                return min_dist
-            else:
-                return 10000
-
-        #MultiLineString Intersection: Intersected disjoint objects
-        else:
-            min_dist = 10000
-            for linestring in collision.geoms:
-                endpoints = (linestring.coords[0], linestring.coords[1])
-                for (collision_x, collision_y) in endpoints:
-                    dist = math.sqrt((self.x - collision_x)**2 + (self.y - collision_y)**2) 
-                    min_dist = min(min_dist, dist)
-                    break #Again, first point is always the closest - this loop is also unnecessary
-                break
-            if min_dist >= 0.45 and min_dist <= 10.0:
-                return min_dist
-            else:
-                return 10000
+#
+#        #Intersection with wall
+#        if collision.geom_type == point_type:
+#            (collision_x, collision_y) = (collision.coords[0][0], collision.coords[0][1])
+#            dist = math.sqrt((self.x - collision_x)**2 + (self.y - collision_y)**2) 
+#            if dist >= 0.45 and dist <= 10.0:
+#                return dist
+#            else:
+#                return 10000
+#
+#        #Intersection through obstacle
+#        elif collision.geom_type == linestring_type:
+#            endpoints = [collision.coords[0], collision.coords[1]]
+#            min_dist = 10000
+#            for tup in endpoints:
+#                (collision_x, collision_y) = (tup[0], tup[1])
+#                dist = math.sqrt((self.x - collision_x)**2 + (self.y - collision_y)**2) 
+#                min_dist = min(min_dist, dist)
+#                break   #First point is the closest - loop is unnecessary, as it turns out.
+#            if min_dist >= 0.45 and min_dist <= 10.0:
+#                return min_dist
+#            else:
+#                return 10000
+#
+#        #MultiLineString Intersection: Intersected disjoint objects
+#        else:
+#            min_dist = 10000
+#            for linestring in collision.geoms:
+#                endpoints = (linestring.coords[0], linestring.coords[1])
+#                for (collision_x, collision_y) in endpoints:
+#                    dist = math.sqrt((self.x - collision_x)**2 + (self.y - collision_y)**2) 
+#                    min_dist = min(min_dist, dist)
+#                    break #Again, first point is always the closest - this loop is also unnecessary
+#                break
+#            if min_dist >= 0.45 and min_dist <= 10.0:
+#                return min_dist
+#            else:
+#                return 10000
 
 
 class Message():
@@ -549,7 +530,6 @@ def main():
 #    end = time.time()
 #    print "Read: " + str(i) + " messages. Total time taken: ", end - start
 #    end = time.time()
-<<<<<<< HEAD
     n = int(raw_input("How many particles would you like? "))
     
     known_start='y'==raw_input("does the robot know the start point?(y,n): ")
@@ -565,11 +545,7 @@ def main():
     pf.scan_noise=scan_noise
     pf.tran_noise=tran_noise
     pf.rot_noise=rot_noise
-=======
-    """Initialize particle filter"""
-    pf = Particle_Filter(map1, 50)
->>>>>>> parent of 0cd5e93... seems like our particles are filtering
-    
+   
     """Retrieve Data"""
     parse_trajectories(f2, pf)
     
@@ -589,51 +565,24 @@ def main():
 
     pf.particles_to_map()
     
-    map1.plot()
+#    map1.plot()
     
 #    print len(pf.messages)
-#    for i in range(0,3):
+#    for i in range(0,1):
+#        ctime = time.time()
 #        pf.iterate(pf.messages[i])
 #        pf.particles_to_map()
     
     for message in pf.messages:
-        pf.iterate(message)
+        ctime = time.time()
+        pf.iterate(message,ctime)
         pf.particles_to_map()
-<<<<<<< HEAD
-        map1.plot()
+#        map1.plot()
     
     map1.plot()
     end = time.time() 
        
     print ("Total time taken: ", end - start)
-=======
-    
-#    pf.iterate(pf.messages[1])
-#    pf.particles_to_map()
-
-#    for message in pf.messages:
-#        ctime = time.time()
-#        print "Iterating..."
-#        pf.iterate(message, ctime)
-#        pf.particles_to_map()
-#    
-    """Print robot Path"""
-    prev=(pf.x_start,pf.y_start)
-    for message in pf.messages:
-        new_x=prev[0]+math.cos(message.heading)*message.distance
-        new_y=prev[1]+math.sin(message.heading)*message.distance
-        current=(new_x,new_y)
-        map1.path.append([prev,current])
-        prev=current
-    end = time.time()  
-    map1.plot()
-    
-#    #pf.compute_weights(pf.messages[0])
-#    
-#    print ("Total time taken: ", end - start)
-#    
-#    print pf.particles
->>>>>>> parent of 0cd5e93... seems like our particles are filtering
 
 def test():
     number = raw_input("Which map do you want to visualize? \nEnter 1, 2, 3, 4, 5, 6 or 7 to continue: ")
@@ -654,8 +603,14 @@ def test():
     """Retrieve Data"""
     parse_trajectories(f2, pf)
     
+    part=Particle(-4,2.1,-1.57079632679)
+    
+    part.scan(map1)
+    
     pf.particles.append(part)
     
+    pf.particles_to_map()
+    map1.plot()
     pf.compute_weights2(pf.messages[0])
 #    
 #    prev=(pf.x_start,pf.y_start)
