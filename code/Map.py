@@ -131,6 +131,7 @@ class Map_2D():
                     avg_y+=pt[1]
                 avg_x/=len(part_list)
                 avg_y/=len(part_list)
+<<<<<<< HEAD
                 avg_x_pts.append(avg_x)
                 avg_y_pts.append(avg_y)
 #                plt.plot(avg_x, avg_y,'-o', marker='o', markersize=5,mew=2, color=est_color)
@@ -141,6 +142,16 @@ class Map_2D():
                 for pt in part_list:
 #                    print pt[2]*10.0
                     plt.plot(pt[0],pt[1],marker='o', markersize=2, color=(.1,.1,.1))
+=======
+                if odd!=0:
+                    estimated_path.append([(prev_x,prev_y),(avg_x,avg_y)])
+                prev_x=avg_x
+                prev_y=avg_y
+#            else:
+#                for pt in part_list:
+##                    print pt[2]*10.0
+#                    plt.plot(pt[0],pt[1],marker='o', markersize=2, color="black")
+>>>>>>> parent of 0cd5e93... seems like our particles are filtering
             counter= counter+gradient
             odd+=1
         
