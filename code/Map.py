@@ -158,14 +158,20 @@ class Map_2D():
         plt.plot(self.path_x,self.path_y,'-o',marker='o', markersize=1,color="black")
         
         plt.plot(avg_x_pts, avg_y_pts,'-o',marker='o', markersize=5,mew=2, color=est_color)
-
+        
+        plt.show()
+        
+        print "Errors:"
+        
         tot_error=0
         for i in range(len(self.path_x)):
 #            print self.path_x[i],", ",self.path_y[i]
 #            print avg_x_pts[i+1], ", ", avg_y_pts[i+1]
-            tot_error+=math.sqrt((self.path_x[i]-avg_x_pts[i+1])**2+ (self.path_y[i]-avg_y_pts[i+1])**2)
+            
+            error=math.sqrt((self.path_x[i]-avg_x_pts[i+1])**2+ (self.path_y[i]-avg_y_pts[i+1])**2)
+            print error
+            tot_error+=error
         
-        plt.show()
         
         print "Average Error: ",tot_error/len(self.path_x)
 
