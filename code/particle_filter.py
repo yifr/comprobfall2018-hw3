@@ -468,8 +468,10 @@ def main():
     number = raw_input("Which map do you want to visualize? \nEnter 1, 2, 3, 4, 5, 6 or 7 to continue: ")
     f1 = "../turtlebot_maps/map_"+str(number)+".txt"
     map1 = Map_2D(f1)
-
-    f2 = '../turtlebot_maps/trajectories/trajectories_'+str(number)+'.txt'
+    
+    trj_name=raw_input("What's the trajectory name?(after Trajectories_): ")
+    
+    f2 = '../turtlebot_maps/trajectories/trajectories_'+str(trj_name)+'.txt'
 #    runCode()
     
     
@@ -556,6 +558,8 @@ def test():
     print 
     f1 = "../turtlebot_maps/map_"+str(number)+".txt"
     map1 = Map_2D(f1)
+    
+    
 
     f2 = '../turtlebot_maps/trajectories/trajectories_'+str(number)+'.txt'
 

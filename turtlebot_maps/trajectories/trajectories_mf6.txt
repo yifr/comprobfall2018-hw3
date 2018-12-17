@@ -1,3 +1,6 @@
+start:
+  x: -4
+  y: 6
 Heading: data: -0.785398163397
 Distance: data: 0.0
 ground_truth: 
