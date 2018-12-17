@@ -2,6 +2,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+import math
 
 from shapely.geometry import Point
 from shapely.geometry import LineString
@@ -156,13 +157,19 @@ class Map_2D():
         plt.plot(self.path_x[0],self.path_y[0],marker='o', markersize=8,color="black")
         plt.plot(self.path_x,self.path_y,'-o',marker='o', markersize=1,color="black")
         
-        
-        
         plt.plot(avg_x_pts, avg_y_pts,'-o',marker='o', markersize=5,mew=2, color=est_color)
 
-
-
+        tot_error=0
+        for i in range(len(self.path_x)):
+#            print self.path_x[i],", ",self.path_y[i]
+#            print avg_x_pts[i+1], ", ", avg_y_pts[i+1]
+            tot_error+=math.sqrt((self.path_x[i]-avg_x_pts[i+1])**2+ (self.path_y[i]-avg_y_pts[i+1])**2)
+        
         plt.show()
+        
+        print "Average Error: ",tot_error/len(self.path_x)
+
+        
 '''
 def main():
     number = raw_input("Which map do you want to visualize? \nEnter 1, 2, 3, 4, 5, 6 or 7 to continue:\n\n")
